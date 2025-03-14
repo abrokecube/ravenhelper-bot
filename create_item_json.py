@@ -10,7 +10,7 @@ async def main():
     await rf.login()
     await rf.refresh_items()
     dirname = os.path.dirname(__file__)
-    with open(os.path.join(dirname, "items.json"), 'w') as f:
+    with open(os.path.join(dirname, "./ravenpy/data/items.json"), 'w') as f:
         json.dump(ravenpy.get_raw_item_data(), f, indent=2)
 
     # ravenpy._rf_items
