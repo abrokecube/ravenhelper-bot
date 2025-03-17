@@ -1,6 +1,6 @@
 from enum import Enum
 
-class ItemType(Enum):
+class ItemTypes(Enum):
     TwoHandedSword = 1
     OneHandedSword = 2
     TwoHandedAxe = 3
@@ -67,6 +67,22 @@ class ItemMaterials(Enum):
     Ether = 12
     Ancient = 13
     Atlarus = 14
+    ElderBronze = 15
+    ElderIron = 16
+    ElderSteel = 17
+    ElderBlack = 18
+    ElderMithril = 19
+    ElderAdamantite = 20
+    ElderRune = 21
+    ElderDragon = 22
+    ElderAbraxas = 23
+    ElderPhantom = 24
+    ElderLionsbane = 25
+    ElderEther = 26
+    ElderAncient = 27
+    ElderAtlarus = 28
+
+    
 
 class Skills(Enum):
     Attack = 0
@@ -87,6 +103,28 @@ class Skills(Enum):
     Gathering = 15
     Alchemy = 16
     All = 999
+
+class Enchantments(Enum):
+    Attack = 0
+    Defense = 1
+    Strength = 2
+    Health = 3
+    Woodcutting = 4
+    Fishing = 5
+    Mining = 6
+    Crafting = 7
+    Cooking = 8
+    Farming = 9
+    Slayer = 10
+    Magic = 11
+    Ranged = 12
+    Sailing = 13
+    Healing = 14
+    Gathering = 15
+    Alchemy = 16
+    Power = 17
+    Aim = 18
+    Armor = 19
 
 class Stat(Enum):
     WeaponAim = 0

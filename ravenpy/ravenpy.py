@@ -45,7 +45,7 @@ class Item:
         self.name = data.get('name')
         self.description = data.get('description')
         self.level = data.get('level')
-        self.type: ItemType | None = ItemType(data.get("type")) if data.get('type') else None
+        self.type: ItemTypes | None = ItemTypes(data.get("type")) if data.get('type') else None
         self.category: ItemCategory | None = ItemCategory(data.get("category")) if data.get('category') else None
         self.material: ItemMaterials | None = ItemMaterials(data.get("material")) if data.get('material') else None
         self.sell_price = data.get("sell_price")
@@ -135,13 +135,23 @@ class CharacterClan:
             for skill in skills:
                 self.skills.append(ClanStat(**skill))
 
+class CharacterItemEnchantment:
+    def __init__(self, enchant_string: str):
+        stat, percentage = enchant_string.split(":")
+        self.percentage = int(percentage.rstrip('%'))/100
+        self.stat = Enchantments[stat.capitalize()]
+
 class CharacterItem:
     def __init__(self, **kwargs):
         self.item: Item = _items_id_data[kwargs.get('itemId')]
         self.amount = kwargs.get('amount')
         self.equipped = kwargs.get('equipped')
         self.soulbound = kwargs.get('soulbound')
-        self.enchantment = kwargs.get('enchantment')
+        enchantment: str = kwargs.get('enchantment')
+        self.enchantments: List[CharacterItemEnchantment] = []
+        if enchantment:
+            for item in enchantment.split(";"):
+                self.enchantments.append(CharacterItemEnchantment(item))
 
 class CharacterStatusEffect:
     def __init__(self, **kwargs):
@@ -171,33 +181,33 @@ class CharacterEquipment:
             if not item.equipped:
                 continue
             match item.item.type:
-                case ItemType.TwoHandedSword | ItemType.OneHandedSword:
+                case ItemTypes.TwoHandedSword | ItemTypes.OneHandedSword:
                     self.weapon = item
-                case ItemType.TwoHandedAxe | ItemType.OneHandedAxe:
+                case ItemTypes.TwoHandedAxe | ItemTypes.OneHandedAxe:
                     self.weapon = item
-                case ItemType.TwoHandedStaff:
+                case ItemTypes.TwoHandedStaff:
                     self.staff = item
-                case ItemType.TwoHandedBow:
+                case ItemTypes.TwoHandedBow:
                     self.bow = item
-                case ItemType.TwoHandedSpear:
+                case ItemTypes.TwoHandedSpear:
                     self.weapon = item
-                case ItemType.Helmet:
+                case ItemTypes.Helmet:
                     self.helmet = item
-                case ItemType.Chest:
+                case ItemTypes.Chest:
                     self.chest = item
-                case ItemType.Gloves:
+                case ItemTypes.Gloves:
                     self.gloves = item
-                case ItemType.Boots:
+                case ItemTypes.Boots:
                     self.boots = item
-                case ItemType.Leggings:
+                case ItemTypes.Leggings:
                     self.leggings = item
-                case ItemType.Shield:
+                case ItemTypes.Shield:
                     self.shield = item
-                case ItemType.Ring:
+                case ItemTypes.Ring:
                     self.ring = item
-                case ItemType.Amulet:
+                case ItemTypes.Amulet:
                     self.amulet = item
-                case ItemType.Pet:
+                case ItemTypes.Pet:
                     self.pet = item
 
     def __iter__(self):
@@ -502,24 +512,6 @@ for level_index in range(MAX_LEVEL):
     exp_for_level += math.trunc(incrementor)
     experience_array[level_index] = exp_for_level
 
-def experience_for_level(level):
-    if level - 2 >= len(experience_array):
-        return experience_array[len(experience_array) - 1]
-    return (0 if level - 2 < 0 else experience_array[level - 2])
-
-def search_item(name: str, limit=10):
-    search_result = thefuzz.process.extract(name, _items_names, limit=limit, scorer=thefuzz.fuzz.ratio)
-    out_results = []
-    for result, score in search_result:
-        out_results.append((_items_name_data[result], score))
-    return out_results
-
-def get_item(name: str):
-    return _items_name_data.get(name)
-
-def get_raw_item_data():
-    return _items
-
 _dirname = os.path.dirname(__file__)
 
 _items = []    
@@ -552,6 +544,60 @@ with open(os.path.join(_dirname, 'data/items.json'), 'r') as f:
     _a = json.load(f)
     _load_item_data(_a)
 
+equipment_levels = {
+    ItemMaterials.Iron: 1,
+    ItemMaterials.Bronze: 1,
+    ItemMaterials.Steel: 10,
+    ItemMaterials.Black: 20,
+    ItemMaterials.Mithril: 30,
+    ItemMaterials.Adamantite: 50,
+    ItemMaterials.Rune: 70,
+    ItemMaterials.Dragon: 90,
+    ItemMaterials.Abraxas: 120,
+    ItemMaterials.Phantom: 150,
+    ItemMaterials.Lionsbane: 200,
+    ItemMaterials.Ether: 280,
+    ItemMaterials.Ancient: 340,
+    ItemMaterials.Atlarus: 400
+}
+
+island_ranges = {
+    (1, 99): Islands.Home,
+    (50, 150): Islands.Away,
+    (100, 300): Islands.Ironhill,
+    (200, 400): Islands.Kyo,
+    (300, 700): Islands.Heim,
+    (500, 900): Islands.Atria,
+    (700, 999): Islands.Eldara
+}
+
+def experience_for_level(level):
+    if level - 2 >= len(experience_array):
+        return experience_array[len(experience_array) - 1]
+    return (0 if level - 2 < 0 else experience_array[level - 2])
+
+def search_item(name: str, limit=10):
+    search_result = thefuzz.process.extract(name, _items_names, limit=limit, scorer=thefuzz.fuzz.ratio)
+    out_results = []
+    for result, score in search_result:
+        out_results.append((_items_name_data[result], score))
+    return out_results
+
+def get_item(name: str):
+    return _items_name_data.get(name)
+
+def get_raw_item_data():
+    return _items
+
+def get_island_for_level(level: int):
+    for (min_lvl, max_lvl), island in reversed(island_ranges.items()):
+        if min_lvl <= level <= max_lvl:
+            return island
+
+def get_material_for_level(level: int):
+    for material, m_level in reversed(equipment_levels.items()):
+        if m_level <= level:
+            return material
 
 fighting_skills = (
     Skills.Attack, Skills.Defense, Skills.Strength, Skills.Health,
