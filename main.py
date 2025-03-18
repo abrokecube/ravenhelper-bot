@@ -45,11 +45,12 @@ class Bot(commands.Bot):
         return await super().event_message(payload)
 
     async def event_command_error(self, payload):
-        if isinstance(payload, commands.exceptions.CommandNotFound):
+        if isinstance(payload.exception, commands.exceptions.CommandNotFound):
+            LOGGER.info(f"[{payload.context.channel.name}] Unknown command {payload.context.message.text}")
             return None
-        elif isinstance(payload, commands.exceptions.CommandOnCooldown):
+        elif isinstance(payload.exception, commands.exceptions.CommandOnCooldown):
             return None
-        elif isinstance(payload, commands.exceptions.CommandInvokeError):
+        elif isinstance(payload.exception, commands.exceptions.CommandInvokeError):
             await payload.context.reply("bruh Error.")
             return await super().event_command_error(payload)
         else:
