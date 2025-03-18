@@ -281,7 +281,17 @@ class RavenItemCommands(commands.Component):
         else:
             out_str += item_list[-1]
         await ctx.reply(f"/me {item.name} is used in creating {out_str}")
-            
+    
+    @commands.command(aliases=("itemsearch","find"))
+    async def search(self, ctx: commands.Context, *item_name: str):
+        item_name_full = " ".join(item_name)
+        search_result = thefuzz.process.extract(item_name_full, ravenpy.get_all_item_names(), limit=25, scorer=thefuzz.fuzz.ratio)
+        results = ", ".join([x[0] for x in search_result if x[1] > MIN_SEARCH_THRESHOLD])
+        if len(results) == 0:
+            await ctx.reply(f"No results for '{item_name_full}.'")
+            return
+        await ctx.reply(f"Search results for '{item_name_full}': {results}")
+
 
     @is_bot_owner()
     @commands.command()
