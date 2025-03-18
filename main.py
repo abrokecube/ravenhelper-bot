@@ -11,6 +11,7 @@ import ravenpy
 from components.textresponses import RavenTextCommands
 from components.characters import RavenCharacterCommands
 from components.raveninfo import RavenInfo
+from components.items import RavenItemCommands
 
 load_dotenv()
 
@@ -34,6 +35,7 @@ class Bot(commands.Bot):
         await self.add_component(RavenTextCommands(self))
         await self.add_component(RavenCharacterCommands(self, rfapi))
         await self.add_component(RavenInfo(self, rfapi))
+        await self.add_component(RavenItemCommands(self, rfapi))
 
         await self.add_component(TestCommands(self))
         LOGGER.info("Finished setup hook!")

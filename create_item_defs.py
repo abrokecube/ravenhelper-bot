@@ -7,7 +7,7 @@ import json
 
 load_dotenv()
 
-with open('items.json') as f:
+with open('./ravenpy/data/items.json') as f:
     items = json.load(f)
 
 def camel(s):

@@ -59,7 +59,7 @@ item_requirement_names = [
 ]
 
 
-async def get_item_data(rf):
+async def _fetch_raw_item_data(rf):
     with open(os.path.join(dirname, "data/internal_game_data.json")) as f:
         a = json.load(f)
     item_effects: dict = a['item_effects']

@@ -86,7 +86,8 @@ class RavenCharacterCommands(commands.Component):
 
             rested = ""
             if char.rested_time.total_seconds() > 0:
-                rested = f"with {utils.format_seconds(char.rested_time.total_seconds(),is_single_char)} of rest time"
+                s = utils.TimeSize.SMALL_SPACES if is_single_char else utils.TimeSize.SMALL
+                rested = f"with {utils.format_seconds(char.rested_time.total_seconds(),s)} of rest time"
         
             captain = ""
             if char.is_captain:
@@ -126,12 +127,12 @@ class RavenCharacterCommands(commands.Component):
                     if not is_single_char:
                         skill_name = langstuff.skill_contractions[stat]
                         stats.append(
-                            f"{skill_name}: {char_stat.level} "\
+                            f"{skill_name}: {char_stat.level} [+{char_stat.enchant_levels}] "\
                             f"({char_stat.level_exp/char_stat.total_exp_for_level:.1%})"
                         )
                     else:
                         stats.append(
-                            f"{skill_name}: {char_stat.level} "\
+                            f"{skill_name}: {char_stat.level} [+{char_stat.enchant_levels}] "\
                             f"({char_stat.level_exp/char_stat.total_exp_for_level:.1%}) "\
                             f"{char_stat.level_exp:,.0f}/{char_stat.total_exp_for_level:,.0f} EXP"
                         )
@@ -147,7 +148,8 @@ class RavenCharacterCommands(commands.Component):
             #     training_time_exp = timedelta(seconds=(exp_to_next_level) / (char.exp_per_hour/60/60/num_skills_training))
             # else:
             #     training_time_exp = math.inf
-            train_time_format = utils.format_timedelta(training_time_server, is_single_char)
+            s = utils.TimeSize.SMALL_SPACES if is_single_char else utils.TimeSize.SMALL
+            train_time_format = utils.format_timedelta(training_time_server, s)
             if char.island and not char.in_onsen:
                 if now < train_end_time:
                     if training_time_server.total_seconds() > 60*60*24*100:  # 99 days
@@ -178,6 +180,12 @@ class RavenCharacterCommands(commands.Component):
                     auto_raid = "Auto-joining raids"
                 elif char.auto_join_raid_count > 0:
                     auto_raid = f"Auto-joining {utils.pl(char.auto_join_raid_count, 'raids')}"
+            auto_rest = ""
+            if is_single_char:
+                if char.is_auto_resting and (char.auto_rest_target is not None):
+                    auto_rest = "Auto-resting"
+                    if char.auto_rest_start != 0 or char.auto_rest_target != 120:
+                        auto_rest = f"Auto-resting from {char.auto_rest_start}m to {char.auto_rest_target}m"
 
             clan = ""
             if is_single_char:
@@ -194,7 +202,7 @@ class RavenCharacterCommands(commands.Component):
                 " ", char_name, index_and_combat_level, "is", what, where, entering_dungeon, where_island, captain, destination, rested
             )
             out_str.append(utils.strjoin(
-                " – ", summary, target_item, utils.strjoin(', ', *stats), exp_per_hr, train_time, auto_dung, auto_raid, clan
+                " – ", summary, target_item, utils.strjoin(', ', *stats), exp_per_hr, train_time, auto_dung, auto_raid, auto_rest, clan
             ))
         coins = f"{utils.pl(out_chars[0].coins, 'coins')}"
         out_msgs = utils.strjoin_len(" ✦ ", MAX_MSG_LENGTH, *out_str, coins)
@@ -251,12 +259,12 @@ class RavenCharacterCommands(commands.Component):
                 armors.append((eq.shield, 'Shield'))
             for piece, short_l in armors:
                 if (not piece) or piece.item.material != rec_armor_mat:
-                    in_inventory = char.get_item(f"{rec_armor_mat.name} {short_l}")
+                    in_inventory = char.get_item(f"{langstuff.material_names[rec_armor_mat]} {short_l}")
                     if in_inventory:
                         short_rec_armor.append("*")
                     else:
                         short_rec_armor.append(short_l[0])
-                    rec_armor = f"{rec_armor_mat.name} set"
+                    rec_armor = f"{langstuff.material_names[rec_armor_mat]} set"
                 else:
                     short_rec_armor.append("-")
             if rec_armor:
@@ -265,7 +273,8 @@ class RavenCharacterCommands(commands.Component):
 
             rec_weapon = ""
             if Skills.Health in (char.dungeon_combat_style, char.raid_combat_style) \
-               or char.training in (Skills.All, Skills.Attack, Skills.Defense, Skills.Strength, Skills.Health):
+               or char.training in (Skills.All, Skills.Attack, Skills.Defense, Skills.Strength, Skills.Health) \
+               or eq.weapon:
                 rec_weapon_mat = ravenpy.get_material_for_level(char.attack.level)
                 inv_check = []
                 if not eq.weapon:
@@ -275,7 +284,7 @@ class RavenCharacterCommands(commands.Component):
                     inv_check.append(f"{rec_weapon_mat.name} Axe")
                     inv_check.append(f"{rec_weapon_mat.name} 2H Axe")
                 elif eq.weapon.item.material != rec_weapon_mat:
-                    rec_weapon = f"{rec_weapon_mat.name} {utils.rm_words(eq.weapon.item.name, 1)}"
+                    rec_weapon = f"{langstuff.material_names[rec_weapon_mat]} {utils.rm_words(eq.weapon.item.name, 1)}"
                     inv_check.append(rec_weapon)
 
                 for item_name in inv_check:
@@ -285,19 +294,21 @@ class RavenCharacterCommands(commands.Component):
 
             rec_staff = ""
             if Skills.Healing in (char.dungeon_combat_style, char.raid_combat_style, char.training)\
-               or Skills.Magic in (char.dungeon_combat_style, char.raid_combat_style, char.training):
+               or Skills.Magic in (char.dungeon_combat_style, char.raid_combat_style, char.training)\
+               or eq.staff:
                 rec_mat = ravenpy.get_material_for_level(max(char.healing.level, char.magic.level))
                 if (not eq.staff) or eq.staff.item.material != rec_mat:
-                    rec_staff = f"{rec_mat.name} staff"
-                    if char.get_item(f"{rec_mat.name} Staff"):
+                    rec_staff = f"{langstuff.material_names[rec_mat]} staff"
+                    if char.get_item(f"{langstuff.material_names[rec_mat]} Staff"):
                         rec_staff += "*"
             
             rec_bow = ""
-            if Skills.Ranged in (char.dungeon_combat_style, char.raid_combat_style, char.training):
+            if Skills.Ranged in (char.dungeon_combat_style, char.raid_combat_style, char.training)\
+               or eq.bow:
                 rec_mat = ravenpy.get_material_for_level(char.ranged.level)
                 if (not eq.bow) or eq.bow.item.material != rec_mat:
-                    rec_bow = f"{rec_mat.name} bow"
-                    if char.get_item(f"{rec_mat.name} Bow"):
+                    rec_bow = f"{langstuff.material_names[rec_mat]} bow"
+                    if char.get_item(f"{langstuff.material_names[rec_mat]} Bow"):
                         rec_bow += "*"
 
             char_recs = utils.strjoin(
@@ -311,6 +322,17 @@ class RavenCharacterCommands(commands.Component):
         if has_armor_recs:
             out_str[-1] += " | ?recsymbols if you're confused"
         await ctx.reply(utils.strjoin('', '/me Recommendations – ', utils.strjoin(' ✦ ', *out_str)))
+
+    @commands.command()
+    async def recsymbols(self, ctx: commands.Context):
+        await ctx.reply("/me "
+        "The letters represent different armor pieces: "
+        "H for Helmet, C for Chest, and so on. "
+        "Armor pieces are arranged in the following order: "
+        "Helmet, Chest, Gloves, Leggings, Boots, and Shield "
+        "(from head to feet, with Shield as an extra piece). "
+        "An asterisk (*) indicates that the armor piece is in your inventory, "
+        "while a dash (-) signifies that it is missing.")
 
     @commands.command(aliases=('insp',))
     async def inspect(self, ctx: commands.Context, user: str = ''):

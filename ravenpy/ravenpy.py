@@ -14,7 +14,7 @@ import thefuzz.fuzz
 import thefuzz.process
 from . import itemdefs
 from .enums import *
-from .itemdata import get_item_data
+from .itemdata import _fetch_raw_item_data
 
 
 class ItemEffect:
@@ -46,19 +46,19 @@ class Item:
         self.description = data.get('description')
         self.level = data.get('level')
         self.type: ItemTypes | None = ItemTypes(data.get("type")) if data.get('type') else None
-        self.category: ItemCategory | None = ItemCategory(data.get("category")) if data.get('category') else None
+        self.category: ItemCategory | None = ItemCategory(data.get("category")) if data.get('category') is not None else None
         self.material: ItemMaterials | None = ItemMaterials(data.get("material")) if data.get('material') else None
         self.sell_price = data.get("sell_price")
         self.buy_price = data.get("buy_price")
         self.enchantments = data.get("enchantments")
         self.soulbound = data.get("soulbound")
-        self.craft_skill = data.get("craft_skill")
+        self.craft_skill = Skills[data.get("craft_skill")] if data.get("craft_skill") else None
         self.craft_level = data.get("craft_level")
         self.min_success_rate = data.get("min_success_rate")
         self.max_success_rate = data.get("max_success_rate")
         self.preperation_time = data.get("preperation_time")
         self.is_fixed_success_rate = data.get("is_fixed_success_rate")
-        self.drop_skill = data.get("drop_skill")
+        self.drop_skill = Skills[data.get("drop_skill")] if data.get("drop_skill") else None
         self.drop_level = data.get("drop_level")
         self.drop_chance = data.get("drop_chance")
         self.drop_cooldown = data.get("drop_cooldown")
@@ -75,10 +75,10 @@ class Item:
         self._modified = data.get("modified")
 
         self.craft_fail_item: Item = None
-        self.craft_ingredients: List[Item] = []
-        self.used_in = []
+        self.craft_ingredients: List[Ingredient] = []
+        self.used_in: List[Item] = []
 
-        self.effects = []
+        self.effects: List[ItemEffect] = []
         for effect in data.get("effects"):
             self.effects.append(ItemEffect(**{
                 "effect": Effects(effect['id']),
@@ -87,14 +87,14 @@ class Item:
                 "min_amount": effect["min_amount"],
             }))
 
-        self.equip_requirements = []
+        self.equip_requirements: List[ItemRequirement] = []
         for req in data.get('equip_requirements'):
             self.equip_requirements.append(ItemRequirement(**{
                 "skill": Skills(req['skill']),
                 "level": req['level']
             }))
 
-        self.stats = []
+        self.stats: List[ItemStat] = []
         for stat in data.get('stats'):
             self.stats.append(ItemStat(**{
                 "stat": Stat(stat['stat']),
@@ -107,6 +107,12 @@ class CharacterStat:
         self.level = level
         self.level_exp = exp
         self.total_exp_for_level = experience_for_level(level+1)
+        self.enchant_percent = 0
+        self.enchant_levels = 0
+
+    def _add_enchant(self, percent):
+        self.enchant_percent += percent
+        self.enchant_levels = round(self.level * self.enchant_percent)
 
 class ClanStat:
     def __init__(self, **kwargs):
@@ -149,9 +155,13 @@ class CharacterItem:
         self.soulbound = kwargs.get('soulbound')
         enchantment: str = kwargs.get('enchantment')
         self.enchantments: List[CharacterItemEnchantment] = []
+        self.active = False
         if enchantment:
             for item in enchantment.split(";"):
                 self.enchantments.append(CharacterItemEnchantment(item))
+
+    def _set_active(self, value):
+        self.active = value
 
 class CharacterStatusEffect:
     def __init__(self, **kwargs):
@@ -180,17 +190,18 @@ class CharacterEquipment:
         for item in equipment:
             if not item.equipped:
                 continue
+            item._set_active(True)
             match item.item.type:
                 case ItemTypes.TwoHandedSword | ItemTypes.OneHandedSword:
                     self.weapon = item
                 case ItemTypes.TwoHandedAxe | ItemTypes.OneHandedAxe:
                     self.weapon = item
+                case ItemTypes.TwoHandedSpear:
+                    self.weapon = item
                 case ItemTypes.TwoHandedStaff:
                     self.staff = item
                 case ItemTypes.TwoHandedBow:
                     self.bow = item
-                case ItemTypes.TwoHandedSpear:
-                    self.weapon = item
                 case ItemTypes.Helmet:
                     self.helmet = item
                 case ItemTypes.Chest:
@@ -210,12 +221,21 @@ class CharacterEquipment:
                 case ItemTypes.Pet:
                     self.pet = item
 
-    def __iter__(self):
-        return [
+        if self.weapon and self.shield:
+            if self.weapon.item.type in [
+                ItemTypes.TwoHandedSword,
+                ItemTypes.TwoHandedAxe,
+                ItemTypes.TwoHandedSpear
+            ]:
+                self.shield._set_active(False)
+
+    def __iter__(self) -> List[CharacterItem]:
+        out = [
             self.helmet, self.chest, self.gloves, self.leggings, self.boots, 
             self.ring, self.amulet, self.staff, self.weapon, self.bow, self.pet, 
             self.shield,
         ]
+        return [x for x in out if x].__iter__()
 
 fighting_replacements = {
     "Atk": "Attack",
@@ -339,6 +359,9 @@ class Character:
         self.auto_join_raid_count = state['autoJoinRaidCounter']
         if state['autoJoinRaidCounter'] == 2147483647:
             self.auto_join_raid_count = math.inf
+        self.is_auto_resting = state['isAutoResting']
+        self.auto_rest_start = state['autoRestStart']
+        self.auto_rest_target = state['autoRestTarget']
         
         self.dungeon_combat_style = _call_or_none(state['dungeonCombatStyle'], Skills)
         self.raid_combat_style = _call_or_none(state['raidCombatStyle'], Skills)
@@ -354,6 +377,14 @@ class Character:
                 self.items.append(char_item)
             self._id_item[char_item.item.id] = char_item
         self.equipment = CharacterEquipment(self._equipment)
+
+        for item in self.equipment:
+            item: CharacterItem
+            if not item.active:
+                continue
+            for enchant in item.enchantments:
+                if enchant.stat.value < 17:  # not power, aim or armor
+                    self.get_skill(Skills(enchant.stat.value))._add_enchant(enchant.percentage)
         
         self.status_effects = []
         for effect in data['statusEffects']:
@@ -376,7 +407,7 @@ class Character:
                 inv_item = self.get_item(target_item)
                 if not inv_item:
                     inv_item = CharacterItem(
-                        item=target_item,
+                        itemId=target_item.id,
                         amount=0,
                         equipped=False,
                         soulbound=False,
@@ -433,7 +464,7 @@ class Ravenfall:
             await self.refresh_items()
     
     async def refresh_items(self):
-        item_data = await get_item_data(self)
+        item_data = await _fetch_raw_item_data(self)
         _load_item_data(item_data)
 
     async def _authenticate(self):
@@ -518,17 +549,23 @@ _items = []
 _items_name_data: Dict[str, Item] = {}
 _items_id_data: Dict[str, Item] = {}
 _items_names: List[str] = []
+_items_list: List[Item] = []
 def _load_item_data(item_list):
     global _items
     global _items_name_data
     global _items_id_data
     global _items_names
+
+    _items_names.clear()
+    _items_list.clear()
+
     _items = item_list
     for item in _items:
         item_thing = Item(item)
         _items_name_data[item_thing.name] = item_thing
         _items_id_data[item_thing.id] = item_thing
         _items_names.append(item_thing.name)
+        _items_list.append(item_thing)
     for item_id, item in _items_id_data.items():
         if item._craft_fail_item:
             item.craft_fail_item = _items_id_data[item._craft_fail_item]
@@ -558,7 +595,20 @@ equipment_levels = {
     ItemMaterials.Lionsbane: 200,
     ItemMaterials.Ether: 280,
     ItemMaterials.Ancient: 340,
-    ItemMaterials.Atlarus: 400
+    ItemMaterials.Atlarus: 400,
+    ItemMaterials.ElderBronze: 500,
+    ItemMaterials.ElderIron: 525,
+    ItemMaterials.ElderSteel: 550,
+    ItemMaterials.ElderMithril: 600,
+    ItemMaterials.ElderAdamantite: 650,
+    ItemMaterials.ElderRune: 700,
+    ItemMaterials.ElderDragon: 750,
+    ItemMaterials.ElderAbraxas: 800,
+    ItemMaterials.ElderPhantom: 850,
+    ItemMaterials.ElderLionsbane: 875,
+    ItemMaterials.ElderEther: 900,
+    ItemMaterials.ElderAncient: 950,
+    ItemMaterials.ElderAtlarus: 999
 }
 
 island_ranges = {
@@ -585,6 +635,12 @@ def search_item(name: str, limit=10):
 
 def get_item(name: str):
     return _items_name_data.get(name)
+
+def get_all_items():
+    return _items_list
+
+def get_all_item_names():
+    return _items_names
 
 def get_raw_item_data():
     return _items

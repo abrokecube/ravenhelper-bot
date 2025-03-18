@@ -77,7 +77,82 @@ class RavenTextCommands(commands.Component):
         await ctx.reply(f"/me Minimum level to equip {msg_prefix} Bronze/Iron - 1 • Steel - 10 • Black - 20 • Mithril - 30 • " \
                         f"Adamantite - 50 • Rune - 70 • Dragon - 90 • Abraxas - 120 • " \
                         f"Phantom - 150 • Lionite/Lionsbane - 200 • Ethereum/Ether - 280 • Ancient - 340 • " \
-                        f"Atlarus - 400{msg_postfix}")
+                        f"Atlarus - 400{msg_postfix} | For elder equipment (level 500+), use ?e{ctx.invoked_with}")
+
+
+    @commands.command(name="ematerials",
+                      aliases=(
+                          "esword", "e1hsword", "e1hswords",
+                          "e2hsword", "e2hswords",
+                          "ekatana", "ekatanas",
+                          "eaxe", "eaxes", "e1haxe", "e1haxes",
+                          "e2haxe", "e2haxes",
+                          "espear", "espears",
+                          "estaff", "estaffs", "estaves", 
+                          "ebow", "ebows",
+                          "earmor", "echest", "echests",
+                          "eleggings",
+                          "eboots",
+                          "eglove", "egloves",
+                          "ehelmet", "ehelmets",
+                          "eshield", "eshields"
+                          ))
+    async def comm_ether_materials(self, ctx: commands.Context):
+        msg_prefix = "Elder 🧱"
+        msg_postfix = ""
+        match ctx.invoked_with[1:]:
+            case "sword" | "1hsword" | "1hswords":
+                msg_prefix = "[Elder 1h Sword] ⚔️"
+                msg_postfix = "Requires 3 bars"
+            case "2hsword" | "2hswords":
+                msg_prefix = "[Elder 2h Sword] ⚔️"
+                msg_postfix = "Requires 3 bars"
+            case "katana" | "katanas":
+                msg_prefix = "[Elder Katana] 🥷"
+                msg_postfix = "Requires 5 bars"
+            case "axe" | "axes" | "1haxe" | "1haxes":
+                msg_prefix = "[Elder 1h Axe] 🪓"
+                msg_postfix = "Requires 5 bars"
+            case "2haxe" | "2haxes":
+                msg_prefix = "[Elder 2h Axe] 🪓"
+                msg_postfix = "Requires 5 bars"
+            case "spear" | "spears":
+                msg_prefix = "[Elder Spear] 🪡"
+                msg_postfix = "Requires 4 bars and 2 logs"
+            case "staff" | "staffs"| "staves":
+                msg_prefix = "[Elder Staff] 🪄"
+                msg_postfix = "Requires 4 bars and 2 logs"
+            case "bow" | "bows":
+                msg_prefix = "[Elder Bow] 🏹"
+                msg_postfix = "Requires 4 bars and 2 logs"
+            case "armor":
+                msg_prefix = "[Elder Armor set] 🛡️"
+                msg_postfix = "Full set requires 22 bars"
+            case "chest" | "chests":
+                msg_prefix = "[Elder Chest] 🛡️"
+                msg_postfix = "Requires 5 bars"
+            case "leggings":
+                msg_prefix = "[Elder Leggings] 🛡️"
+                msg_postfix = "Requires 4 bars"
+            case "boots":
+                msg_prefix = "[Elder Boots] 🛡️"
+                msg_postfix = "Requires 3 bars"
+            case "glove" | "gloves":
+                msg_prefix = "[Elder Gloves] 🛡️"
+                msg_postfix = "Requires 3 bars"
+            case "helmet" | "helmets":
+                msg_prefix = "[Elder Helmet] 🛡️"
+                msg_postfix = "Requires 3 bars"
+            case "shield" | "shields":
+                msg_prefix = "[Elder Shield] 🛡️"
+                msg_postfix = "Requires 4 bars"
+        
+        if len(msg_postfix) > 0:
+            msg_postfix = " | " + msg_postfix
+        await ctx.reply(f"/me Minimum level to equip {msg_prefix} E.Bronze - 500 • E.Iron - 525 • " \
+                        "E.Steel - 550 • E.Mithril - 600 • E.Adamantite - 650 • E.Rune - 700 • " \
+                        "E.Dragon - 750 • E.Abraxas - 800 • E.Phantom - 850 • E.Lionsbane - 875 • " \
+                        f"E.Ether - 900 • E.Ancient - 950 • E.Atlarus - 999{msg_postfix}")
 
     @commands.command(aliases=('training','train','skill'))
     async def skills(self, ctx: commands.Context):
@@ -125,54 +200,3 @@ class RavenTextCommands(commands.Component):
     async def slayer(self, ctx: commands.Context):
         await ctx.reply("/me ⚔️ Train Slayer by joining Raids and Dungeons.")
 
-    @commands.command(aliases=("ore","bar","bars","miningitems"))
-    async def ores(self, ctx: commands.Context):
-        await ctx.reply(
-            "/me ⛏️ Mining level required to obtain ores: " \
-            "Copper and Tin - 1 • Sapphire - 10 • Iron - 15 • Silver and Emerald - 20 • " \
-            "Coal and Ruby - 30 • Gold - 40 • Mithril - 60 • Adamantite - 80 • " \
-            "Rune - 110 • Dragon - 180 • Eldrium - 250 • Abraxas - 350 • " \
-            "Phantom - 450 • Lionite - 575 • Ethereum - 700 • Ancient - 850 • Atlarus - 999"
-        )
-
-    @commands.command(aliases=("foraging","gatheringitems"))
-    async def forage(self, ctx: commands.Context):
-        await ctx.reply(
-            "/me 🧺 Gathering level required to obtain items: " \
-            "Water - 1 • Sand - 5 • Yarrow, Yeast - 10 • Mushroom - 15 • " \
-            "Hemp, Salt - 20 • Black Pepper - 25 • Resin - 30 • Comfrey - 40 • " \
-            "Sage - 60 • Lavender - 80 • Elderflower - 100 • Valerian - 120 • " \
-            "Chamomile - 140 • Red Clover - 180 • Mugworth - 230 • GoldenRod - 280 • " \
-            "Wormwood - 330 • Skullcap - 400 • Lemon Balm - 500"
-        )
-
-    @commands.command(aliases=("crop","farmingitems"))
-    async def crops(self, ctx: commands.Context):
-        await ctx.reply(
-            "/me 🌾 Farming level required to obtain items: " \
-            "Wheat - 1 • Potato - 5 • Tomato - 10 • Cumin - 30 • Coriander - 40 • " \
-            "Paprika - 50 • Turmeric - 60 • Apple - 70 • Carrots - 80 • " \
-            "Garlic - 90 • Onion - 100 • Sugar - 100 • Milk - 120 • " \
-            "Cinnamon - 120 • Eggs - 140 • Chicken - 160 • Pork - 200 • Beef - 240 • " \
-            "Grapes - 320 • Cacao - 400 • Truffle - 800"
-        )
-
-    @commands.command(aliases=("fishes","fishingitems"))
-    async def fish(self, ctx: commands.Context):
-        await ctx.reply(
-            "/me 🎣 Fishing level required to obtain items: " \
-            "Sprat - 1 • Shrimp - 5 • Red Sea Bass - 20 • Bass - 50 • " \
-            "Perch - 70 • Salmon - 100 • Crab - 130 • Lobster - 170 • " \
-            "Blue Lobster - 220 • Sword Fish - 280 • Puffer Fish - 350 • " \
-            "Octopus - 420 • Manta Ray - 500 • Kraken - 700 • Leviathan - 900"
-        )
-
-    @commands.command(aliases=("woodcuttingitems",))
-    async def wood(self, ctx: commands.Context):
-        await ctx.reply(
-            "/me 🌳 Woodcutting level required to obtain logs: " \
-            "Logs - 1 • Bristle - 10 • Glowbark - 15 • Mystwood - 30 • " \
-            "Sandrift - 50 • Pineheart - 70 • Ebonshade - 100 • Rune - 110 • " \
-            "Ironbark - 130 • Frostbite - 170 • Dragonwood - 200 • " \
-            "Goldwillow - 240 • Shadowoak - 300"
-        )

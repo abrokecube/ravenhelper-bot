@@ -82,8 +82,6 @@ class ItemMaterials(Enum):
     ElderAncient = 27
     ElderAtlarus = 28
 
-    
-
 class Skills(Enum):
     Attack = 0
     Defense = 1
