@@ -47,7 +47,14 @@ class Bot(commands.Bot):
     async def event_command_error(self, payload):
         if isinstance(payload, commands.exceptions.CommandNotFound):
             return None
-        return await super().event_command_error(payload)
+        elif isinstance(payload, commands.exceptions.CommandOnCooldown):
+            return None
+        elif isinstance(payload, commands.exceptions.CommandInvokeError):
+            await payload.context.reply("bruh Error.")
+            return await super().event_command_error(payload)
+        else:
+            # await payload.context.reply("bruh Error.")
+            return await super().event_command_error(payload)
 
 
 
