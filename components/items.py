@@ -14,7 +14,7 @@ from typing import Iterable
 
 MIN_SEARCH_THRESHOLD = 10
 SEARCH_SUCCESS_THRESHOLD = 80
-MAX_MSG_LENGTH = 495
+MAX_MSG_LENGTH = 485
 
 @cached(cache=TTLCache(maxsize=1, ttl=15))
 def get_wood():

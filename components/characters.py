@@ -13,7 +13,7 @@ from utils import langstuff
 from utils import charutils
 
 DEBUG = True
-MAX_MSG_LENGTH = 495
+MAX_MSG_LENGTH = 485
 
 class RavenCharacterCommands(commands.Component):
     def __init__(self, bot: commands.Bot, rf_api: ravenpy.Ravenfall):
@@ -205,7 +205,8 @@ class RavenCharacterCommands(commands.Component):
                 " – ", summary, target_item, utils.strjoin(', ', *stats), exp_per_hr, train_time, auto_dung, auto_raid, auto_rest, clan
             ))
         coins = f"{utils.pl(out_chars[0].coins, 'coins')}"
-        out_msgs = utils.strjoin_len(" ✦ ", MAX_MSG_LENGTH, *out_str, coins)
+        user_name = out_chars[0].user_name
+        out_msgs = utils.strjoin_len(" ✦ ", MAX_MSG_LENGTH, user_name, *out_str, coins)
         out_msgs = utils.strextend(out_msgs, MAX_MSG_LENGTH, f" | Training time is estimated")
         # out = " ✦ ".join(out_str)
         for msg in out_msgs:
