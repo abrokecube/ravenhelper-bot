@@ -327,7 +327,7 @@ class RavenCharacterCommands(commands.Component):
 
         if has_armor_recs:
             out_str[-1] += " | ?recsymbols if you're confused"
-        await ctx.reply(utils.strjoin('', '/me Recommendations – ', utils.strjoin(' ✦ ', *out_str)))
+        await ctx.reply(utils.strjoin('', f'/me Recommendations for {user_chars[0].user_name} – ', utils.strjoin(' ✦ ', *out_str)))
 
     @commands.command()
     async def recsymbols(self, ctx: commands.Context):
@@ -347,7 +347,7 @@ class RavenCharacterCommands(commands.Component):
         if user_chars is None:
             return
 
-        out_str = []
+        out_str = [f"Inspect links for {user_chars[0].user_name}"]
         for char in user_chars:
             char_name = utils.truncate_sentence(char.identifier, 40)
             out_str.append(f"{char_name}: https://www.ravenfall.stream/inspect/{char.id}")
