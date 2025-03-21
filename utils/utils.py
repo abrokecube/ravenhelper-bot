@@ -159,5 +159,6 @@ def format_seconds(seconds: int, size=TimeSize.SMALL):
 
 def is_bot_owner():
     def predicate(ctx: commands.Context) -> bool:
+        """Bot owner"""
         return ctx.chatter.id == os.getenv('OWNER_ID')
     return commands.guard(predicate)

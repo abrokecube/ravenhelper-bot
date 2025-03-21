@@ -76,11 +76,11 @@ class RavenItemCommands(commands.Component):
     async def ores(self, ctx: commands.Context):
         await ctx.reply(f"/me ⛏️ Mining level required to obtain ores: {get_ores()}")
 
-    async def search_item(self, ctx: commands.Context, item_name: str | Iterable[str]) -> ravenpy.Item | None:
-        if isinstance(item_name, str):
-            item_name_full = item_name
-        elif isinstance(item_name, (list, tuple)):
-            item_name_full = ' '.join(item_name)
+    async def search_item(self, ctx: commands.Context, query: str | Iterable[str]) -> ravenpy.Item | None:
+        if isinstance(query, str):
+            item_name_full = query
+        elif isinstance(query, (list, tuple)):
+            item_name_full = ' '.join(query)
         else:
             raise ValueError("item_name was not a valid type!")
         if item_name_full == '':
@@ -100,6 +100,7 @@ class RavenItemCommands(commands.Component):
 
     @commands.command(aliases=('info',))
     async def item(self, ctx: commands.Context, *item_name):
+        """Get information about an item."""
         item_name_full = " ".join(item_name)
         if item_name_full.lower() in ['rand', 'random']:
             result = random.choice(ravenpy.get_all_item_names())
@@ -200,6 +201,7 @@ class RavenItemCommands(commands.Component):
 
     @commands.command(aliases=('requirements','craft','reqs'))
     async def req(self, ctx: commands.Context, *item_name: str):
+        """Get requirements to obtain an item."""
         item_name_full = " ".join(item_name)
         count = 1
         if item_name[-1].isdigit():
@@ -267,6 +269,7 @@ class RavenItemCommands(commands.Component):
 
     @commands.command(aliases=("usage","use"))
     async def uses(self, ctx: commands.Context, *item_name: str):
+        """Get uses for an item as an ingredient."""
         item = await self.search_item(ctx, item_name)
         if not item:
             return
@@ -284,6 +287,7 @@ class RavenItemCommands(commands.Component):
     
     @commands.command(aliases=("itemsearch","find"))
     async def search(self, ctx: commands.Context, *item_name: str):
+        """A simple item name search command."""
         item_name_full = " ".join(item_name)
         search_result = thefuzz.process.extract(item_name_full, ravenpy.get_all_item_names(), limit=25, scorer=thefuzz.fuzz.ratio)
         results = ", ".join([x[0] for x in search_result if x[1] > MIN_SEARCH_THRESHOLD])
@@ -296,6 +300,7 @@ class RavenItemCommands(commands.Component):
     @is_bot_owner()
     @commands.command()
     async def fetchitems(self, ctx: commands.Context):
+        """Refreshes the internal item database."""
         await ctx.reply(f"Fetching items...", me=True)
         await self.rf_api.refresh_items()
         await ctx.reply(f"Successfully refetched {len(ravenpy.get_all_items())} items", me=True)

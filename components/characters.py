@@ -22,6 +22,10 @@ class RavenCharacterCommands(commands.Component):
 
     @commands.command(aliases=('char',))
     async def character(self, ctx: commands.Context, arg1: str = '', arg2: str = ''):
+        """Get information about a user's characters. 
+        Supply a character name, a user name, or both (in that order) to get more 
+        information about another user's characters or a specific one.
+        """
         out_chars = await charutils.search_user_characters(self.rf_api, ctx, arg1, arg2)
         if out_chars is None:
             return
@@ -205,7 +209,7 @@ class RavenCharacterCommands(commands.Component):
                 " – ", summary, target_item, utils.strjoin(', ', *stats), exp_per_hr, train_time, auto_dung, auto_raid, auto_rest, clan
             ))
         coins = f"{utils.pl(out_chars[0].coins, 'coins')}"
-        user_name = out_chars[0].user_name
+        user_name = f"󠀀{out_chars[0].user_name}"
         out_msgs = utils.strjoin_len(" ✦ ", MAX_MSG_LENGTH, user_name, *out_str, coins)
         out_msgs = utils.strextend(out_msgs, MAX_MSG_LENGTH, f" | Training time is estimated")
         # out = " ✦ ".join(out_str)
@@ -214,6 +218,7 @@ class RavenCharacterCommands(commands.Component):
 
     @commands.command(aliases=('rec',))
     async def recommend(self, ctx: commands.Context, user: str = ''):
+        """Get recommendations for all characters."""
         user_chars = await charutils.search_user_characters(self.rf_api, ctx, user, None)
         if user_chars is None:
             return
@@ -337,6 +342,7 @@ class RavenCharacterCommands(commands.Component):
 
     @commands.command(aliases=('insp',))
     async def inspect(self, ctx: commands.Context, user: str = ''):
+        """Get inspect URLs for all characters."""
         user_chars = await charutils.search_user_characters(self.rf_api, ctx, user, None)
         if user_chars is None:
             return
