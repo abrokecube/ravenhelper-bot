@@ -17,8 +17,16 @@ class HelpCommands(commands.Component):
             command (str, optional): A command to show details about.
         """
         if not command in self.bot.commands:
-            command_list = sorted([x.name for x in set(self.bot.commands.values())])
-            bot_commands = ", ".join(command_list)
+            component_commands = {}
+            for comm in self.bot.commands.values():
+                if not comm.component in component_commands:
+                    component_commands[comm.component] = set()
+                component_commands[comm.component].add(comm.name)
+            commands_out = []
+            for comms in component_commands.values():
+                commands_out.append(", ".join(sorted(tuple(comms))))
+            # command_list = sorted([x.name for x in set(self.bot.commands.values())])
+            bot_commands = " | ".join(commands_out)
             await ctx.reply(f"Commands: {bot_commands}")
             return
 
