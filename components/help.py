@@ -48,7 +48,7 @@ class HelpCommands(commands.Component):
                 param_str = param.name
                 param_type = param.annotation
                 param_type_name = ""
-                param_is_optional = bool(param.default)
+                param_is_optional = param.default != param.empty
                 if param_type in (str, int, float):
                     param_type_name = param_type.__name__
                 if param_type_name:
