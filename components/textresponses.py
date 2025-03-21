@@ -7,6 +7,7 @@ class RavenTextCommands(commands.Component):
 
     @commands.command(name="materials",
                       aliases=(
+                          "weapon", "weapons",
                           "sword", "1hsword", "1hswords",
                           "2hsword", "2hswords",
                           "katana", "katanas",
@@ -26,6 +27,9 @@ class RavenTextCommands(commands.Component):
         msg_prefix = "🧱"
         msg_postfix = ""
         match ctx.invoked_with:
+            case "weapon" | "weapons":
+                msg_prefix = "[Weapon] ⚔️"
+                msg_postfix = "Requires 3-5 bars"
             case "sword" | "1hsword" | "1hswords":
                 msg_prefix = "[1h Sword] ⚔️"
                 msg_postfix = "Requires 3 bars"
@@ -82,6 +86,7 @@ class RavenTextCommands(commands.Component):
 
     @commands.command(name="ematerials",
                       aliases=(
+                          "eweapon", "eweapons",
                           "esword", "e1hsword", "e1hswords",
                           "e2hsword", "e2hswords",
                           "ekatana", "ekatanas",
@@ -101,6 +106,9 @@ class RavenTextCommands(commands.Component):
         msg_prefix = "Elder 🧱"
         msg_postfix = ""
         match ctx.invoked_with[1:]:
+            case "weapon" | "weapons":
+                msg_prefix = "[Weapon] ⚔️"
+                msg_postfix = "Requires 3-5 bars"
             case "sword" | "1hsword" | "1hswords":
                 msg_prefix = "[Elder 1h Sword] ⚔️"
                 msg_postfix = "Requires 3 bars"
