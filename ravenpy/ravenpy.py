@@ -419,7 +419,6 @@ class Character:
             if (not self.island) and (not self.destination == Islands.Ferry):
                 self.training = Skills.Sailing
 
-
     def get_item(self, item: Item | str | itemdefs.Items):
         if isinstance(item, Item):
             result = self._id_item.get(item.id)
