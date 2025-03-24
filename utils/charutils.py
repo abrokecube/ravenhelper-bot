@@ -113,11 +113,11 @@ async def search_user_characters(
     if username:
         result = split_arguments(args_filtered,
             SplitWildcard(),
-            SplitQuery(user_char_indexes+author_char_indexes, optional=True),
             SplitQuery(user_char_names+author_char_names, optional=True),
+            SplitQuery(user_char_indexes+author_char_indexes, optional=True),
             SplitWildcard()
         )
-        user_q, index_q, char_q, rest_q = [x.text for x in result]
+        user_q, char_q, index_q, rest_q = [x.text for x in result]
         rest_q_split = rest_q.split()
         if rest_q_split and rest_q_split[0] == username:
             user_q = username
@@ -132,6 +132,7 @@ async def search_user_characters(
         user_q = ''
         index_q, char_q, rest_q = [x.text for x in result]
     out_chars = []
+    
     if user_q:
         if not user_chars:
             await ctx.reply(
