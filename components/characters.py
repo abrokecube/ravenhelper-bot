@@ -21,20 +21,19 @@ class RavenCharacterCommands(commands.Component):
         self.rf_api = rf_api
 
     @commands.command(aliases=('char',))
-    async def character(self, ctx: commands.Context, arg1: str = '', arg2: str = ''):
+    async def character(self, ctx: commands.Context, *args: str):
         """Get information about a user's characters. 
         Supply a character name, a user name, or both (in that order) to get more 
         information about another user's characters or a specific one.
         """
-        out_chars = await charutils.search_user_characters(self.rf_api, ctx, arg1, arg2)
-        if out_chars is None:
+        result = await charutils.search_user_characters(self.rf_api, ctx, *args)
+        if result is None:
             return
-        #     await ctx.reply("bruh Something went wrong.")
-        #     raise Exception('uh oh')
+        user_chars = result.chars
         
         out_str = []
-        is_single_char = len(out_chars) == 1
-        for char in out_chars:
+        is_single_char = len(user_chars) == 1
+        for char in user_chars:
             char_name = utils.truncate_sentence(char.name, 40)
 
             if char_name in ['1', '2', '3']:
@@ -66,6 +65,8 @@ class RavenCharacterCommands(commands.Component):
                     what = f"{char.training.name.lower()}"
             elif char.training == Skills.Alchemy:
                 what = f"training alchemy"
+            elif char.training == Skills.Sailing:
+                pass
             elif char.training is None:
                 pass
             else:
@@ -208,9 +209,9 @@ class RavenCharacterCommands(commands.Component):
             out_str.append(utils.strjoin(
                 " – ", summary, target_item, utils.strjoin(', ', *stats), exp_per_hr, train_time, auto_dung, auto_raid, auto_rest, clan
             ))
-        coins = f"{utils.pl(out_chars[0].coins, 'coins')}"
-        user_name = f"󠀀{out_chars[0].user_name}"
-        out_msgs = utils.strjoin_len(" ✦ ", MAX_MSG_LENGTH, user_name, *out_str, coins)
+        # coins = f"{utils.pl(user_chars[0].coins, 'coins')}"
+        user_name = f"󠀀{user_chars[0].user_name}"
+        out_msgs = utils.strjoin_len(" ✦ ", MAX_MSG_LENGTH, user_name, *out_str)
         out_msgs = utils.strextend(out_msgs, MAX_MSG_LENGTH, f" | Training time is estimated")
         # out = " ✦ ".join(out_str)
         for msg in out_msgs:
@@ -219,7 +220,7 @@ class RavenCharacterCommands(commands.Component):
     @commands.command(aliases=('rec',))
     async def recommend(self, ctx: commands.Context, user: str = ''):
         """Get recommendations for all characters."""
-        user_chars = await charutils.search_user_characters(self.rf_api, ctx, user, None)
+        user_chars = await charutils.get_user_characters(self.rf_api, ctx, user)
         if user_chars is None:
             return
         
@@ -227,6 +228,7 @@ class RavenCharacterCommands(commands.Component):
         out_str = []
         for char in user_chars:
             char_name = utils.truncate_sentence(char.name, 40)
+            index_and_combat_level = f"({char.character_index}, Lv{char.combat_level})"
             is_training_combat = False
             
             training = ""
@@ -321,7 +323,7 @@ class RavenCharacterCommands(commands.Component):
                 ' – ', rec_island, rec_armor, rec_weapon, rec_staff, rec_bow
             )
             if len(char_recs) > 0:
-                out_str.append(utils.strjoin(' ', f"{char_name} ({char.character_index}):", training, '–', char_recs))
+                out_str.append(utils.strjoin(' ', f"{char_name} {index_and_combat_level}:", training, '–', char_recs))
         if len(out_str) == 0:
             out_str.append(f"You're all good! Okay")
 
@@ -343,16 +345,63 @@ class RavenCharacterCommands(commands.Component):
     @commands.command(aliases=('insp',))
     async def inspect(self, ctx: commands.Context, user: str = ''):
         """Get inspect URLs for all characters."""
-        user_chars = await charutils.search_user_characters(self.rf_api, ctx, user, None)
+        user_chars = await charutils.get_user_characters(self.rf_api, ctx, user)
         if user_chars is None:
             return
 
         out_str = [f"Inspect links for {user_chars[0].user_name}"]
         for char in user_chars:
+            index_and_combat_level = f"({char.character_index}, Lv{char.combat_level})"
             char_name = utils.truncate_sentence(char.identifier, 40)
-            out_str.append(f"{char_name}: https://www.ravenfall.stream/inspect/{char.id}")
+            out_str.append(f"{char_name} {index_and_combat_level}: https://www.ravenfall.stream/inspect/{char.id}")
         if len(out_str) == 0:
             await ctx.reply("This user has no characters.")
             return
         out = " • ".join(out_str)
         await ctx.reply(f"/me {out}")
+
+    @commands.command(aliases=('res','coins','coin'))
+    async def resources(self, ctx: commands.Context, user: str = ''):
+        """Get a user's coin amount"""
+        user_chars = await charutils.get_user_characters(self.rf_api, ctx, user)
+        if user_chars is None:
+            return
+        user_name = user_chars[0].user_name
+        coin_amount = user_chars[0].coins
+        await ctx.reply(f"/me {user_name} has {utils.pl(coin_amount, 'coin')}")
+
+    @commands.command()
+    async def stats(self, ctx: commands.Context, *args):
+        """Get stats of a character"""
+        result = await charutils.search_user_characters(self.rf_api, ctx, *args, single_char_only=True)
+        if result is None:
+            return
+        user_chars = result.chars
+        
+        stats_str = []
+        total_levels = 0
+        for stat in user_chars[0].stats:
+            total_levels += stat.level
+            stat_percent = ''
+            if stat.level_exp > 0:
+                stat_percent = f'({stat.level_exp/stat.total_exp_for_level:.0%})'
+            stat_string = utils.strjoin(
+                    ' ', langstuff.skill_contractions[stat.skill], stat.level,
+                    utils.strenclose('[', ']', '', utils.strprefix('+', stat.enchant_levels)),
+                    stat_percent
+                )
+            if stat.skill in user_chars[0].training_skills:
+                stat_string = f"■ {stat_string.upper()}"
+            else:
+                if len(stats_str) > 0:
+                    stat_string = f"- {stat_string}"
+            stats_str.append(stat_string)
+        
+        char_name = utils.truncate_sentence(user_chars[0].identifier, 40)
+        out_string = utils.strjoin(' ',
+            f"Stats for {user_chars[0].user_name}: {char_name}", '✦', 
+            f"Combat level: {user_chars[0].combat_level}", '✦', 
+            ' '.join(stats_str),
+            '✦', f"Total: {total_levels}"
+        )
+        await ctx.reply(out_string, me=True)

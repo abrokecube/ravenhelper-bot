@@ -272,6 +272,7 @@ class Character:
         self.user_name: str = data['userName']
         self.identifier: str = data['identifier']
         self.character_index: int = data['characterIndex']+1
+        self.index = self.character_index
         if not self.identifier:
             self.identifier = str(self.character_index)
         self.name: str = self.identifier
@@ -368,14 +369,16 @@ class Character:
 
         self.items: List[CharacterItem] = []
         self._equipment: List[CharacterItem] = []
-        self._id_item: Dict[str, CharacterItem] = {}
+        self._id_item: Dict[str, List[CharacterItem]] = {}
         for item in data['inventoryItems']:
             char_item = CharacterItem(**item)
             if char_item.equipped:
                 self._equipment.append(char_item)
             else:
                 self.items.append(char_item)
-            self._id_item[char_item.item.id] = char_item
+            if not char_item.item.id in self._id_item:
+                self._id_item[char_item.item.id] = []
+            self._id_item[char_item.item.id].append(char_item)
         self.equipment = CharacterEquipment(self._equipment)
 
         for item in self.equipment:
@@ -419,24 +422,45 @@ class Character:
             if (not self.island) and (not self.destination == Islands.Ferry):
                 self.training = Skills.Sailing
 
+        self.training_stats: List[CharacterStat] = []
+        if self.training:
+            if self.training in (Skills.All, Skills.Health):
+                self.training_stats.extend([self.attack, self.defense, self.strength])
+            else:
+                self.training_stats.append(self.get_skill(self.training))
+
+            if self.training in combat_skills:
+                self.training_stats.append(self.health)
+            if self.in_raid or self.in_dungeon:
+                self.training_stats.append(self.slayer)
+
+        self.training_skills: List[Skills] = []
+        for char_stat in self.training_stats:
+            self.training_skills.append(char_stat.skill)
+
     def get_item(self, item: Item | str | itemdefs.Items):
+        result = self.get_all_item(item)
+        if not result:
+            return None
+        else:
+            return result[0]
+
+    def get_all_item(self, item: Item | str | itemdefs.Items):
+        query = None
         if isinstance(item, Item):
-            result = self._id_item.get(item.id)
+            query = item.id
         elif isinstance(item, str):
             if item.count('-') == 4:
-                result = self._id_item.get(item)
+                query = item
             else:
                 item_query = get_item(item)
                 if item_query:
-                    result = self._id_item.get(item_query.id)
-                else:
-                    result = None
+                    query = item_query.id
         elif isinstance(item, itemdefs.Items):
-            result = self._id_item.get(item.value)
+            query = item.value
         else:
             raise ValueError("bro...")
-        return result
-    
+        return self._id_item.get(query)
 
     def get_skill(self, skill: Skills):
         return self._skill_dict[skill]

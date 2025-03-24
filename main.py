@@ -53,7 +53,10 @@ class Bot(commands.Bot):
         elif isinstance(payload.exception, commands.exceptions.CommandOnCooldown):
             return None
         elif isinstance(payload.exception, commands.exceptions.CommandInvokeError):
-            await payload.context.reply("bruh Error.")
+            if isinstance(payload.exception.original, AssertionError):
+                await payload.context.reply("bruh Error...")
+            else:
+                await payload.context.reply("bruh Error.")
             return await super().event_command_error(payload)
         else:
             # await payload.context.reply("bruh Error.")

@@ -1,10 +1,18 @@
 from datetime import datetime, timedelta
 import string
+from typing import Iterable, Dict, List, Tuple
 
+import thefuzz.process
 from twitchio.ext import commands
 import os
+import thefuzz
+
+import ravenpy
+from cachetools import TTLCache, cached
 
 from enum import Enum
+from math import inf
+
 
 class TimeSize(Enum):
     SMALL = 0
@@ -13,8 +21,16 @@ class TimeSize(Enum):
     MEDIUM_SPACES = 3
     LONG = 4
 
-def strjoin(connecting_char: str, *strings: str):
-    return connecting_char.join([str(x) for x in strings if x])
+def strjoin(connecting_char: str, *strings: str, before_end: str | None=None, include_conn_char_before_end=False):
+    str_list = [str(x) for x in strings if x]
+    if len(str_list) > 1 and before_end is not None:
+        if include_conn_char_before_end:
+            str_list[-1] = f"{before_end}{str_list[-1]}"
+        else:
+            a = str_list.pop()
+            str_list[-1] += f"{before_end}{a}"
+    
+    return connecting_char.join(str_list)
 
 def strenclose(open_char: str, close_char: str, connecting_char: str, *strings: str):
     out = [open_char + str(x) + close_char for x in strings if x]
@@ -65,7 +81,11 @@ def strextend(base, max_chars: int, *strings: str):
         result.append(current)
     
     return result
-
+def strprefix(prefix: str, string: str):
+    if string:
+        return f"{prefix}{string}"
+    else:
+        return ''
 def rm_words(string: str, num: int):
     split = string.split(' ')
     if num > 0:
@@ -156,6 +176,138 @@ def format_seconds(seconds: int, size=TimeSize.SMALL):
         return " ".join(parts).strip()
     else:
         return "".join(parts).strip()
+
+
+class SplitWildcard:
+    def __init__(self, min_words=0):
+        self.min_words = min_words
+
+class SplitQuery:
+    def __init__(
+            self, string_list: Iterable[str], min_match_thresh=90, 
+            match_word_count=False, search_range=2, optional=False,
+            return_result_count = 5
+            ):
+        self.string_list = string_list
+        self.match_threshold = min_match_thresh
+        self.match_word_count = match_word_count
+        self.search_range = search_range
+        self.optional = optional
+        self.return_result_count = return_result_count
+        self._grouped_by_word_count: Dict[int, List[str]] = {}
+        self._max_word_count = 0
+        self._min_word_count = inf
+        for string in self.string_list:
+            words = len(string.split())
+            if not words in self._grouped_by_word_count:
+                self._grouped_by_word_count[words] = []
+            self._grouped_by_word_count[words].append(string)
+            if words > self._max_word_count:
+                self._max_word_count = words
+            if words < self._min_word_count:
+                self._min_word_count = words
+        if self._min_word_count == 0:
+            self.optional = True
+
+class SplitResult:
+    def __init__(self):
+        self.text: str | None = None
+        self.match_score: int = 0
+        self.match_results: Iterable[Tuple[str, int]] = tuple()
+        self.match_query = ""
+
+def split_arguments(in_str: str | Iterable[str], *queries: SplitQuery | SplitWildcard
+) -> Tuple[SplitResult, None]:
+    if isinstance(in_str, str):
+        in_args = in_str.split()
+    else:
+        in_args = in_str
+    ptr_start = 0
+    ptr_length = 1
+    advance_pointer = False
+    prev_is_wildcard = False
+    out_results = [SplitResult() for _ in range(len(queries))]
+    # print(f"split_arguments with {len(in_args)} queries")
+    
+    for idx, query in enumerate(queries):
+        advance_pointer = False
+        if isinstance(query, SplitWildcard):
+            prev_is_wildcard = True
+            ptr_length = query.min_words
+            advance_pointer = True
+            if ptr_start+ptr_length > len(in_args):
+                break
+            out_results[idx].text = " ".join(in_args[ptr_start:ptr_start+ptr_length])
+            
+        elif isinstance(query, SplitQuery):
+            if len(query.string_list) == 0 and query.optional:
+                out_results[idx].text = ''
+                continue
+
+            if ptr_start >= len(in_args):
+                if query.optional:
+                    out_results[idx].text = ''
+                    ptr_length = 0
+                else:
+                    break
+            while ptr_start < len(in_args):
+                for x in range(query._max_word_count+query.search_range,0,-1):
+                    if query.match_word_count and not x in query._grouped_by_word_count:
+                        continue
+                    ptr_length = x
+                    if ptr_start+ptr_length > len(in_args):
+                        continue
+                    if query.match_word_count:
+                        string_items = query._grouped_by_word_count[x]
+                    else:
+                        string_items = query.string_list
+                    query_string = " ".join(in_args[ptr_start:ptr_start+ptr_length])
+                    query_result = thefuzz.process.extract(
+                        query_string, string_items, limit=query.return_result_count,
+                        scorer=thefuzz.process.fuzz.ratio
+                    )
+                    # print(f"{idx}: {query_string}")
+                    result, score = query_result[0]
+                    if score > out_results[idx].match_score:
+                        out_results[idx].match_score = score
+                        out_results[idx].match_results = query_result
+                        out_results[idx].match_query = query_string
+                        # print(f"   Matched {result} ({score})")
+                        if score > query.match_threshold:
+                            advance_pointer = True
+                            out_results[idx].text = result
+                            if score == 100:
+                                break
+                if out_results[idx].text is None:
+                    if query.optional:
+                        out_results[idx].text = ''
+                        ptr_length = 0
+                        # break
+                    if prev_is_wildcard:
+                        if not out_results[idx-1].text:
+                            out_results[idx-1].text = in_args[ptr_start]
+                        else:
+                            out_results[idx-1].text += f" {in_args[ptr_start]}"
+                        ptr_start += 1
+                    else:
+                        break
+                else:
+                    break
+            prev_is_wildcard = False
+        else:
+            raise ValueError("Argument must be SplitQuery or SplitWildcard")
+        if advance_pointer:
+            ptr_start += ptr_length
+        ptr_length = 1
+    if prev_is_wildcard:
+        if ptr_start < len(in_args):
+            out_results[-1].text = ' '.join(in_args[ptr_start:])
+    return tuple(out_results)
+        
+
+@cached(cache=TTLCache(maxsize=1, ttl=30))
+def get_item_split_query():
+    return SplitQuery(ravenpy.get_all_item_names())
 
 def is_bot_owner():
     def predicate(ctx: commands.Context) -> bool:

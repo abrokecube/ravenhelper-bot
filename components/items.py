@@ -8,7 +8,9 @@ from cachetools import TTLCache, cached
 from utils.utils import is_bot_owner
 import random
 import thefuzz
-from utils.utils import strjoin, strenclose, strextend, strjoin_len, format_seconds, pl, TimeSize
+from utils.utils import strjoin, strenclose, strextend, strjoin_len, format_seconds, \
+    pl, TimeSize, SplitQuery, split_arguments, SplitWildcard
+
 from utils import langstuff
 from typing import Iterable
 
@@ -50,6 +52,10 @@ def get_ores():
     mining_stuff.sort(key=lambda x: x.drop_level)
     items_str = [f"{x.name.replace(' Ore', '')} - {x.drop_level}" for x in mining_stuff]
     return ' • '.join(items_str)
+
+@cached(cache=TTLCache(maxsize=1, ttl=30))
+def get_split_query():
+    return SplitQuery(ravenpy.get_all_item_names())
 
 class RavenItemCommands(commands.Component):
     def __init__(self, bot: commands.Bot, rf_api: ravenpy.Ravenfall):
@@ -304,3 +310,12 @@ class RavenItemCommands(commands.Component):
         await ctx.reply(f"Fetching items...", me=True)
         await self.rf_api.refresh_items()
         await ctx.reply(f"Successfully refetched {len(ravenpy.get_all_items())} items", me=True)
+
+    @is_bot_owner()
+    @commands.command()
+    async def testing(self, ctx: commands.Context, *args: str):
+        """aga"""
+        username_split = ['mine craft', 'btmc', 'abroke cube gaming']
+        asdfasdf = split_arguments(args, SplitWildcard(1), SplitQuery(username_split), get_split_query(), SplitWildcard(1))
+        print(asdfasdf)
+        ...
