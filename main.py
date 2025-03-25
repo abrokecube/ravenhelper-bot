@@ -48,9 +48,13 @@ class Bot(commands.Bot):
 
     async def event_command_error(self, payload):
         if isinstance(payload.exception, commands.exceptions.CommandNotFound):
-            LOGGER.info(f"[{payload.context.channel.name}] Unknown command {payload.context.message.text}")
+            LOGGER.debug(f"[{payload.context.channel.name}] ({payload.context.chatter.name}) Unknown command {payload.context.message.text}")
             return None
         elif isinstance(payload.exception, commands.exceptions.CommandOnCooldown):
+            LOGGER.debug(f"[{payload.context.channel.name}] ({payload.context.chatter.name}) {payload.context.message.text} is on cooldown")
+            return None
+        elif isinstance(payload.exception, commands.exceptions.GuardFailure):
+            LOGGER.debug(f"[{payload.context.channel.name}] ({payload.context.chatter.name}) {payload.context.message.text} was guarded")
             return None
         elif isinstance(payload.exception, commands.exceptions.CommandInvokeError):
             if isinstance(payload.exception.original, AssertionError):
@@ -80,7 +84,7 @@ class TestCommands(commands.Component):
 rfapi: ravenpy.Ravenfall
 async def main() -> None:
     global rfapi
-    twitchio.utils.setup_logging(level=logging.INFO)
+    twitchio.utils.setup_logging(level=int(os.getenv("LOGGING_LEVEL")))
     rfapi = ravenpy.Ravenfall(os.getenv("API_USER"), os.getenv("API_PASS"))
     await rfapi.login()
 

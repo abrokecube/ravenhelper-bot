@@ -32,6 +32,21 @@ def strjoin(connecting_char: str, *strings: str, before_end: str | None=None, in
     
     return connecting_char.join(str_list)
 
+def strjoin_list(connecting_char: str, *strings: str, before_end: str | None=None, include_conn_char_before_end=False):
+    str_list = [str(x) for x in strings if x]
+    if len(str_list) > 1 and before_end is not None:
+        if include_conn_char_before_end:
+            str_list[-1] = f"{before_end}{str_list[-1]}"
+        else:
+            a = str_list.pop()
+            str_list[-1] += f"{before_end}{a}"
+    out_list = []
+    for string in str_list:
+        out_list.append(string)
+        out_list.append(connecting_char)
+    out_list.pop()
+    return out_list
+
 def strenclose(open_char: str, close_char: str, connecting_char: str, *strings: str):
     out = [open_char + str(x) + close_char for x in strings if x]
     if len(out) == 0:
@@ -57,6 +72,7 @@ def strjoin_len(connecting_char: str, max_chars: int, *strings: str):
         result.append(current)
     
     return result
+
 def strextend(base, max_chars: int, *strings: str):
     if isinstance(base, str):
         result, current = [], base
@@ -186,7 +202,7 @@ class SplitQuery:
     def __init__(
             self, string_list: Iterable[str], min_match_thresh=90, 
             match_word_count=False, search_range=2, optional=False,
-            return_result_count = 5
+            return_result_count = 5, match_count = 1
             ):
         self.string_list = string_list
         self.match_threshold = min_match_thresh
@@ -194,6 +210,7 @@ class SplitQuery:
         self.search_range = search_range
         self.optional = optional
         self.return_result_count = return_result_count
+        self.max_match_count = match_count
         self._grouped_by_word_count: Dict[int, List[str]] = {}
         self._max_word_count = 0
         self._min_word_count = inf
@@ -208,6 +225,7 @@ class SplitQuery:
                 self._min_word_count = words
         if self._min_word_count == 0:
             self.optional = True
+        self._iterations = 0
 
 class SplitResult:
     def __init__(self):
@@ -217,7 +235,7 @@ class SplitResult:
         self.match_query = ""
 
 def split_arguments(in_str: str | Iterable[str], *queries: SplitQuery | SplitWildcard
-) -> Tuple[SplitResult, None]:
+) -> Tuple[SplitResult | None]:
     if isinstance(in_str, str):
         in_args = in_str.split()
     else:
@@ -229,7 +247,9 @@ def split_arguments(in_str: str | Iterable[str], *queries: SplitQuery | SplitWil
     out_results = [SplitResult() for _ in range(len(queries))]
     # print(f"split_arguments with {len(in_args)} queries")
     
-    for idx, query in enumerate(queries):
+    idx = -1    
+    for query in queries:
+        idx += 1
         advance_pointer = False
         if isinstance(query, SplitWildcard):
             prev_is_wildcard = True
@@ -240,6 +260,10 @@ def split_arguments(in_str: str | Iterable[str], *queries: SplitQuery | SplitWil
             out_results[idx].text = " ".join(in_args[ptr_start:ptr_start+ptr_length])
             
         elif isinstance(query, SplitQuery):
+            query._iterations = 1
+            if query.max_match_count <= 0:
+                continue
+            
             if len(query.string_list) == 0 and query.optional:
                 out_results[idx].text = ''
                 continue
@@ -291,6 +315,16 @@ def split_arguments(in_str: str | Iterable[str], *queries: SplitQuery | SplitWil
                         ptr_start += 1
                     else:
                         break
+                elif out_results[idx].text != '':
+                    if query._iterations >= query.max_match_count:
+                        break
+                    else:
+                        query._iterations += 1
+                        out_results.append(SplitResult())
+                        prev_is_wildcard = False
+                        idx += 1
+                        if advance_pointer:
+                            ptr_start += ptr_length
                 else:
                     break
             prev_is_wildcard = False

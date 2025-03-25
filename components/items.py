@@ -106,7 +106,11 @@ class RavenItemCommands(commands.Component):
 
     @commands.command(aliases=('info',))
     async def item(self, ctx: commands.Context, *item_name):
-        """Get information about an item."""
+        """Get information about an item.
+        
+        Args:
+            item_name (str): Name of an item to query.
+        """
         item_name_full = " ".join(item_name)
         if item_name_full.lower() in ['rand', 'random']:
             result = random.choice(ravenpy.get_all_item_names())
@@ -207,7 +211,11 @@ class RavenItemCommands(commands.Component):
 
     @commands.command(aliases=('requirements','craft','reqs'))
     async def req(self, ctx: commands.Context, *item_name: str):
-        """Get requirements to obtain an item."""
+        """Get requirements to obtain an item.
+        
+        Args:
+            item_name (str): Name of an item to query.
+        """
         item_name_full = " ".join(item_name)
         count = 1
         if item_name[-1].isdigit():
@@ -275,7 +283,11 @@ class RavenItemCommands(commands.Component):
 
     @commands.command(aliases=("usage","use"))
     async def uses(self, ctx: commands.Context, *item_name: str):
-        """Get uses for an item as an ingredient."""
+        """Get uses for an item as an ingredient.
+        
+        Args:
+            item_name (str): Name of an item to query.
+        """
         item = await self.search_item(ctx, item_name)
         if not item:
             return
@@ -293,7 +305,11 @@ class RavenItemCommands(commands.Component):
     
     @commands.command(aliases=("itemsearch","find"))
     async def search(self, ctx: commands.Context, *item_name: str):
-        """A simple item name search command."""
+        """A simple item name search command.
+        
+        Args:
+            item_name (str): Name of an item to query.
+        """
         item_name_full = " ".join(item_name)
         search_result = thefuzz.process.extract(item_name_full, ravenpy.get_all_item_names(), limit=25, scorer=thefuzz.fuzz.ratio)
         results = ", ".join([x[0] for x in search_result if x[1] > MIN_SEARCH_THRESHOLD])

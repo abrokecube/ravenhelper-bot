@@ -10,11 +10,12 @@ class HelpCommands(commands.Component):
         self.bot = bot
     
     @commands.command(aliases=('commands',))
-    async def help(self, ctx: commands.Context, command: str = ""):
+    async def help(self, ctx: commands.Context, command: str = "", argument: str = ""):
         """Shows information about available commands.
         
         Args:
             command (str, optional): A command to show details about.
+            argument (str, optional): Argument of a command to show details about.
         """
         if not command in self.bot.commands:
             component_commands = {}
@@ -36,6 +37,7 @@ class HelpCommands(commands.Component):
         nm_out = [f"Usage: {ctx.prefix}{command}"]
         description = ""
         doc_parsed = None
+        command_arguments = {}
         if doc_string:
             doc_parsed = parse(doc_string)
             description = doc_parsed.description
@@ -50,6 +52,7 @@ class HelpCommands(commands.Component):
                 else:
                     param_str = f"<{param_str}>"
                 nm_out.append(param_str)
+                command_arguments[param.arg_name] = f"{param_str} – {param.description}"
         else:
             func_inspect = inspect.signature(command_func)
             for param in [x for x in func_inspect.parameters.values()][2:]:
@@ -66,7 +69,12 @@ class HelpCommands(commands.Component):
                 else:
                     param_str = f"<{param_str}>"
                 nm_out.append(param_str)
-            ...
+                command_arguments[param.name] = f"{param_str} – (no description)"
+        
+        if argument in command_arguments:
+            await ctx.reply(command_arguments[argument])
+            return
+        
         name_and_usage = " ".join(nm_out)
         aliases = ""
         if command_class.aliases:

@@ -25,6 +25,10 @@ class RavenCharacterCommands(commands.Component):
         """Get information about a user's characters. 
         Supply a character name, a user name, or both (in that order) to get more 
         information about another user's characters or a specific one.
+        
+        Args:
+            user (str, optional): Twitch username.
+            character (str, optional): Character index or name.
         """
         result = await charutils.search_user_characters(self.rf_api, ctx, *args)
         if result is None:
@@ -219,7 +223,11 @@ class RavenCharacterCommands(commands.Component):
 
     @commands.command(aliases=('rec',))
     async def recommend(self, ctx: commands.Context, user: str = ''):
-        """Get recommendations for all characters."""
+        """Get recommendations for all characters.
+        
+        Args:
+            user (str, optional): Twitch username.
+        """
         user_chars = await charutils.get_user_characters(self.rf_api, ctx, user)
         if user_chars is None:
             return
@@ -344,7 +352,11 @@ class RavenCharacterCommands(commands.Component):
 
     @commands.command(aliases=('insp',))
     async def inspect(self, ctx: commands.Context, user: str = ''):
-        """Get inspect URLs for all characters."""
+        """Get inspect URLs for all characters.
+        
+        Args:
+            user (str, optional): Twitch username.
+        """
         user_chars = await charutils.get_user_characters(self.rf_api, ctx, user)
         if user_chars is None:
             return
@@ -362,7 +374,11 @@ class RavenCharacterCommands(commands.Component):
 
     @commands.command(aliases=('res','coins','coin'))
     async def resources(self, ctx: commands.Context, user: str = ''):
-        """Get a user's coin amount"""
+        """Get a user's coin amount
+        
+        Args:
+            user (str, optional): Twitch username.
+        """
         user_chars = await charutils.get_user_characters(self.rf_api, ctx, user)
         if user_chars is None:
             return
@@ -372,7 +388,12 @@ class RavenCharacterCommands(commands.Component):
 
     @commands.command()
     async def stats(self, ctx: commands.Context, *args):
-        """Get stats of a character"""
+        """Get stats of a character
+        
+        Args:
+            user (str, optional): Twitch username.
+            character (str, optional): Character index or name.
+        """
         result = await charutils.search_user_characters(self.rf_api, ctx, *args, single_char_only=True)
         if result is None:
             return
@@ -405,3 +426,71 @@ class RavenCharacterCommands(commands.Component):
             '✦', f"Total: {total_levels}"
         )
         await ctx.reply(out_string, me=True)
+        
+    @commands.command(aliases=('charitem',))
+    async def items(self, ctx: commands.Context, *args):
+        """Show how much of an item a user has.
+        
+        Args:
+            user (str, optional): Twitch username.
+            items (str): Item name(s) to check. Up to 10 item names will be accepted.
+        """
+        if not args:
+            await ctx.reply(f"uuh Please provide one or more item names")
+            return
+        item_query = utils.get_item_split_query()
+        # item_query.max_match_count = 10
+        result = utils.split_arguments(
+            args,
+            utils.SplitWildcard(),
+            item_query,
+            utils.SplitWildcard(),
+            item_query,
+            utils.SplitWildcard(),
+            item_query,
+            utils.SplitWildcard(),
+            item_query,
+            utils.SplitWildcard(),
+            item_query,
+            utils.SplitWildcard(),
+            item_query,
+            utils.SplitWildcard(),
+            item_query,
+            utils.SplitWildcard(),
+            item_query,
+            utils.SplitWildcard(),
+            item_query,
+            utils.SplitWildcard(),
+            item_query,
+        )
+        user_q = result[0].text
+        if not result[1].text:
+            await ctx.reply(f"uuh No valid item names were provided.")
+            return
+        items_q = {}
+        for thing in [x.text for x in result[1::2] if x.text]:
+            items_q[thing] = None
+        user_chars = await charutils.get_user_characters(self.rf_api, ctx, user_q)
+        if user_chars is None:
+            return
+        
+        user_char_names = [x.name for x in user_chars]
+        items_str = []
+        for item_name in items_q.keys():
+            item_counts = []
+            for char in user_chars:
+                char: ravenpy.Character 
+                char_item = char.get_all_item(item_name)
+                if char_item:
+                    total_count = sum([x.amount for x in char_item])
+                else:
+                    total_count = 0
+                item_counts.append(f"×{total_count}")
+            items_str.append(f"{item_name}: {', '.join(item_counts)}")
+        out_text = utils.strjoin_len(
+            '', MAX_MSG_LENGTH, f"Items for {user_chars[0].user_name}: ",
+            utils.strjoin(', ', *user_char_names, before_end=' and '),
+            ' ✦ ', *utils.strjoin_list(' • ', *items_str)
+        )
+        for thing in out_text:
+            await ctx.reply(thing, me=True)
