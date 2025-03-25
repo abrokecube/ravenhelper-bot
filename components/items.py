@@ -200,7 +200,7 @@ class RavenItemCommands(commands.Component):
                 ' • ', MAX_MSG_LENGTH, name_desc, stats, effects, level, drop_level,
                 enchants, raid_drop, soulbound, value
             )
-            out_strs = strextend(out_strs, MAX_MSG_LENGTH, f" | Use ?req to see crafting info")
+            out_strs = strextend(out_strs, MAX_MSG_LENGTH, f" | Use {ctx.prefix}req to see crafting info")
         else:
             out_strs = strjoin_len(
                 ' • ', MAX_MSG_LENGTH, name_desc, stats, effects, level, drop_level, cooldown_time, 

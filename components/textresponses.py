@@ -81,7 +81,7 @@ class RavenTextCommands(commands.Component):
         await ctx.reply(f"/me Minimum level to equip {msg_prefix} Bronze/Iron - 1 • Steel - 10 • Black - 20 • Mithril - 30 • " \
                         f"Adamantite - 50 • Rune - 70 • Dragon - 90 • Abraxas - 120 • " \
                         f"Phantom - 150 • Lionite/Lionsbane - 200 • Ethereum/Ether - 280 • Ancient - 340 • " \
-                        f"Atlarus - 400{msg_postfix} | For elder equipment (level 500+), use ?e{ctx.invoked_with}")
+                        f"Atlarus - 400{msg_postfix} | For elder equipment (level 500+), use {ctx.prefix}e{ctx.invoked_with}")
 
 
     @commands.command(name="ematerials",
@@ -176,15 +176,15 @@ class RavenTextCommands(commands.Component):
         command = ctx.invoked_with
         postfix = ""
         if command == "mining":
-            postfix = " | To see ore mining levels, use ?ore"
+            postfix = f" | To see ore mining levels, use {ctx.prefix}ore"
         elif command == "gathering":
-            postfix = " | To see item gathering levels, use ?forage"
+            postfix = f" | To see item gathering levels, use {ctx.prefix}forage"
         elif command == "farming":
-            postfix = " | To see crop farming levels, use ?crops"
+            postfix = f" | To see crop farming levels, use {ctx.prefix}crops"
         elif command == "fishing":
-            postfix = " | To see fish catching levels, use ?fish"
+            postfix = f" | To see fish catching levels, use {ctx.prefix}fish"
         elif command == "woodcutting":
-            postfix = " | To see tree chopping levels, use ?wood"
+            postfix = f" | To see tree chopping levels, use {ctx.prefix}wood"
         await ctx.reply(f"/me 🏝️ Islands and level ranges to train {command.title()}: " \
                         "Home - 1-99 • Away - 50-150 • Ironhill - 100-300 • " \
                         f"Kyo - 200-400 • Heim - 300-700 • Atria - 500-900 • Eldara - 700+{postfix}")

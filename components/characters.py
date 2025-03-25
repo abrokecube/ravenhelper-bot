@@ -336,7 +336,7 @@ class RavenCharacterCommands(commands.Component):
             out_str.append(f"You're all good! Okay")
 
         if has_armor_recs:
-            out_str[-1] += " | ?recsymbols if you're confused"
+            out_str[-1] += f" | {ctx.prefix}recsymbols if you're confused"
         await ctx.reply(utils.strjoin('', f'/me Recommendations for {user_chars[0].user_name} – ', utils.strjoin(' ✦ ', *out_str)))
 
     @commands.command()
