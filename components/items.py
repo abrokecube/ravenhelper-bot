@@ -62,7 +62,7 @@ class RavenItemCommands(commands.Component):
         self.bot = bot
         self.rf_api = rf_api
 
-    @commands.command(aliases=("woodcuttingitems",))
+    @commands.command(aliases=("woodcuttingitems","chop"))
     async def wood(self, ctx: commands.Context):
         await ctx.reply(f"/me 🌳 Woodcutting level required to obtain logs: {get_wood()}")
     
@@ -70,15 +70,15 @@ class RavenItemCommands(commands.Component):
     async def fish(self, ctx: commands.Context):
         await ctx.reply(f"/me 🎣 Fishing level required to obtain fish: {get_fish()}")
 
-    @commands.command(aliases=("crop","farmingitems"))
+    @commands.command(aliases=("crop","farmingitems","farm"))
     async def crops(self, ctx: commands.Context):
         await ctx.reply(f"/me 🌾 Farming level required to obtain crops: {get_crops()}")
 
-    @commands.command(aliases=("foraging","gatheringitems"))
+    @commands.command(aliases=("foraging","gatheringitems","gather"))
     async def forage(self, ctx: commands.Context):
         await ctx.reply(f"/me 🧺 Gathering level required to obtain items: {get_forage()}")
 
-    @commands.command(aliases=("ore","bar","bars","miningitems"))
+    @commands.command(aliases=("ore","bar","bars","miningitems","mine"))
     async def ores(self, ctx: commands.Context):
         await ctx.reply(f"/me ⛏️ Mining level required to obtain ores: {get_ores()}")
 
