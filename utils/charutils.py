@@ -50,7 +50,7 @@ class CharSearchResult:
         self.characters = char_tuple
         self.leftover = leftover
 
-tw_username_re = re.compile(r"^[a-zA-Z0-9][\w]{2,24}$")
+tw_username_re = re.compile(r"^@?[a-zA-Z0-9][\w]{2,24}$")
 async def get_user_characters(rfapi: ravenpy.Ravenfall, ctx: commands.Context, user: str=''):
     if user and not tw_username_re.match(user):
         await ctx.reply(f"uuh {user} is not a valid username.")
@@ -78,7 +78,7 @@ async def get_user_characters(rfapi: ravenpy.Ravenfall, ctx: commands.Context, u
     
 
 async def search_user_characters(
-    rfapi: ravenpy.Ravenfall, ctx: commands.Context, *args, single_char_only=False
+    rfapi: ravenpy.Ravenfall, ctx: commands.Context, *args: str, single_char_only=False
 ) -> CharSearchResult | None:
     include_user = False
     args_filtered = [x for x in args if x]
@@ -104,7 +104,7 @@ async def search_user_characters(
             return None
         return CharSearchResult(author_chars, '')
 
-    username = ''    
+    username = ''
     if user_chars is not None:
         username = args_filtered[0]
     # char_indexes = [str(x) for x in range(max(len(author_chars), len(user_chars) if user_chars else 0))]
@@ -120,7 +120,7 @@ async def search_user_characters(
         user_q, char_q, index_q, rest_q = [x.text for x in result]
         rest_q_split = rest_q.split()
         if rest_q_split and rest_q_split[0] == username:
-            user_q = username
+            user_q = username.lstrip('@')
             rest_q = " ".join(rest_q_split[1:])
     else:
         char_indexes = [str(x.index) for x in author_chars]
