@@ -198,11 +198,29 @@ class SplitWildcard:
     def __init__(self, min_words=0):
         self.min_words = min_words
 
+class SplitFuzzyRatio(Enum):
+    SIMPLE_RATIO = 1
+    PARTIAL_RATIO = 2
+    TOKEN_SORT_RATIO = 3
+    TOKEN_SET_RATIO = 4
+    PARTIAL_TOKEN_SORT_RATIO = 5
+    PARTIAL_TOKEN_SET_RATIO = 6
+    
+_split_fuzzy_funcs = {
+    SplitFuzzyRatio.SIMPLE_RATIO: thefuzz.process.fuzz.ratio,
+    SplitFuzzyRatio.PARTIAL_RATIO: thefuzz.process.fuzz.partial_ratio,
+    SplitFuzzyRatio.TOKEN_SORT_RATIO: thefuzz.process.fuzz.token_sort_ratio,
+    SplitFuzzyRatio.TOKEN_SET_RATIO: thefuzz.process.fuzz.token_set_ratio,
+    SplitFuzzyRatio.PARTIAL_TOKEN_SORT_RATIO: thefuzz.process.fuzz.partial_token_sort_ratio,
+    SplitFuzzyRatio.PARTIAL_TOKEN_SET_RATIO: thefuzz.process.fuzz.partial_token_set_ratio,
+}
+    
 class SplitQuery:
     def __init__(
             self, string_list: Iterable[str], min_match_thresh=90, 
             match_word_count=False, search_range=2, optional=False,
-            return_result_count = 5, match_count = 1
+            return_result_count = 5, match_count = 1,
+            match_algo: SplitFuzzyRatio = SplitFuzzyRatio.SIMPLE_RATIO
             ):
         self.string_list = string_list
         self.match_threshold = min_match_thresh
@@ -211,6 +229,7 @@ class SplitQuery:
         self.optional = optional
         self.return_result_count = return_result_count
         self.max_match_count = match_count
+        self.fuzzy_algo = match_algo
         self._grouped_by_word_count: Dict[int, List[str]] = {}
         self._max_word_count = 0
         self._min_word_count = inf
@@ -288,7 +307,7 @@ def split_arguments(in_str: str | Iterable[str], *queries: SplitQuery | SplitWil
                     query_string = " ".join(in_args[ptr_start:ptr_start+ptr_length])
                     query_result = thefuzz.process.extract(
                         query_string, string_items, limit=query.return_result_count,
-                        scorer=thefuzz.process.fuzz.ratio
+                        scorer=_split_fuzzy_funcs[query.fuzzy_algo]
                     )
                     # print(f"{idx}: {query_string}")
                     result, score = query_result[0]

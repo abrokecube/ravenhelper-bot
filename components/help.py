@@ -69,6 +69,7 @@ class HelpCommands(commands.Component):
                 else:
                     param_str = f"<{param_str}>"
                 nm_out.append(param_str)
+                # TODO: explicitly indicate when an argument is optional
                 command_arguments[param.name] = f"{param_str} – (no description)"
         
         if argument in command_arguments:

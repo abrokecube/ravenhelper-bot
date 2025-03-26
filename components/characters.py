@@ -394,6 +394,7 @@ class RavenCharacterCommands(commands.Component):
             user (str, optional): Twitch username.
             character (str, optional): Character index or name.
         """
+        # TODO: allow a user to get one or more specific skills for all characters, like in the items command
         result = await charutils.search_user_characters(self.rf_api, ctx, *args, single_char_only=True)
         if result is None:
             return
@@ -439,7 +440,7 @@ class RavenCharacterCommands(commands.Component):
             await ctx.reply(f"uuh Please provide one or more item names")
             return
         item_query = utils.get_item_split_query()
-        # item_query.max_match_count = 10
+        item_query.match_threshold = 85
         result = utils.split_arguments(
             args,
             utils.SplitWildcard(),
@@ -465,7 +466,16 @@ class RavenCharacterCommands(commands.Component):
         )
         user_q = result[0].text
         if not result[1].text:
-            await ctx.reply(f"uuh No valid item names were provided.")
+            out_msg = "uuh No valid item names were provided."
+            item_strs = []
+            for x in range(5):
+                iresult, iscore = result[1].match_results[x]
+                if iscore < 50:
+                    break
+                item_strs.append(iresult)
+            if item_strs:
+                out_msg = f"{out_msg} (Did you mean {', '.join(item_strs)}?)"
+            await ctx.reply(out_msg)
             return
         items_q = {}
         for thing in [x.text for x in result[1::2] if x.text]:
