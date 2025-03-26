@@ -541,7 +541,7 @@ class Ravenfall:
     async def _exp_multiplier(self):
         return await self._get(f"/Game/exp-multiplier")
 
-    @alru_cache(ttl=4)
+    @alru_cache(ttl=5)
     async def _get_players_twitch(self, twitch_id, char_id=1):
         return await self._get(f"/Players/twitch/{twitch_id}/{char_id}")
     
