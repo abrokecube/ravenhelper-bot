@@ -571,8 +571,14 @@ class RavenCharacterCommands(commands.Component):
                 )
                 single_stat_str.append(stat_string)
                 totals[idx] += stat.level
+                
+            stat_name = ""
+            if len(skills) > 6:
+                stat_name = stat.skill.name
+            else:
+                stat_name = langstuff.skill_contractions[stat.skill]
             out_stat_str = utils.strjoin(
-                ' ', langstuff.skill_contractions[stat.skill],
+                ' ', stat_name,
                 utils.strjoin(', ', *single_stat_str)
             )
             if len(user_chars) == 1 and skill in character.training_skills:
