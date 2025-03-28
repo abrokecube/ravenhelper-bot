@@ -10,6 +10,7 @@ import thefuzz
 import ravenpy
 from cachetools import TTLCache, cached
 
+import re 
 from enum import Enum
 from math import inf
 
@@ -356,7 +357,10 @@ def split_arguments(in_str: str | Iterable[str], *queries: SplitQuery | SplitWil
         if ptr_start < len(in_args):
             out_results[-1].text = ' '.join(in_args[ptr_start:])
     return tuple(out_results)
-        
+
+tw_username_re = re.compile(r"^@?[a-zA-Z0-9][\w]{2,24}$")
+def is_twitch_username(text: str):
+    return bool(tw_username_re.match(text))
 
 @cached(cache=TTLCache(maxsize=1, ttl=30))
 def get_item_split_query():

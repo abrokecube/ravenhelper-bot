@@ -4,7 +4,7 @@ import ravenpy
 import asyncio
 from async_lru import alru_cache
 import re
-from .utils import split_arguments, SplitQuery, SplitWildcard, strjoin
+from .utils import split_arguments, SplitQuery, SplitWildcard, strjoin, is_twitch_username
 DEBUG = True
 
 def match_identifier(chars: List[ravenpy.Character], target: str):
@@ -48,11 +48,10 @@ class CharSearchResult:
         char_tuple = tuple(chars)
         self.chars = char_tuple
         self.characters = char_tuple
-        self.leftover = leftover
+        self.leftover_args = leftover.split()
 
-tw_username_re = re.compile(r"^@?[a-zA-Z0-9][\w]{2,24}$")
 async def get_user_characters(rfapi: ravenpy.Ravenfall, ctx: commands.Context, user: str=''):
-    if user and not tw_username_re.match(user):
+    if user and not is_twitch_username(user):
         await ctx.reply(f"uuh {user} is not a valid username.")
         return None
     if not user:
@@ -75,14 +74,19 @@ async def get_user_characters(rfapi: ravenpy.Ravenfall, ctx: commands.Context, u
             return None
         else:
             return user_chars
-    
+
 
 async def search_user_characters(
-    rfapi: ravenpy.Ravenfall, ctx: commands.Context, *args: str, single_char_only=False
+    rfapi: ravenpy.Ravenfall,
+    ctx: commands.Context,
+    *args: str,
+    single_char_only=False,
+    author_chars_fallback=False,
+    all_chars_fallback=False,
 ) -> CharSearchResult | None:
     include_user = False
     args_filtered = [x for x in args if x]
-    if args_filtered and tw_username_re.match(args_filtered[0]):
+    if args_filtered and is_twitch_username(args_filtered[0]):
         include_user = True
         
     tasks = [
@@ -133,10 +137,14 @@ async def search_user_characters(
         index_q, char_q, rest_q = [x.text for x in result]
     out_chars = []
     
+    if author_chars_fallback and not user_chars:
+        rest_q = strjoin(' ', username, rest_q)
+        user_q = ''
+        
     if user_q:
         if not user_chars:
             await ctx.reply(
-                f"YEP '{args_filtered[0]}' has no characters."
+                f"YEP '{username}' has no characters."
             )
             return None
         elif char_q:
@@ -149,6 +157,8 @@ async def search_user_characters(
                     f"They do have {strjoin(', ', *user_char_names, before_end=' and ')}."
                 )
                 return None
+        elif all_chars_fallback:
+            out_chars = user_chars
         elif rest_q:
             await ctx.reply(
                 f"uuh No character by {username} named '{rest_q}'. " \
@@ -178,6 +188,8 @@ async def search_user_characters(
                     f"You do have {strjoin(', ', *author_char_names, before_end=' and ')}."
                 )
                 return None
+        elif all_chars_fallback:
+            out_chars = author_chars
         elif rest_q:
             await ctx.reply(
                 f"uuh You don't have a character named '{rest_q}'. " \

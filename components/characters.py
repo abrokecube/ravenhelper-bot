@@ -15,6 +15,78 @@ from utils import charutils
 DEBUG = True
 MAX_MSG_LENGTH = 485
 
+skill_map = {
+    "Attack": Skills.Attack,
+    "atk": Skills.Attack,
+    "att": Skills.Attack,
+    
+    "Defense": Skills.Defense,
+    "def": Skills.Defense,
+    
+    "Strength": Skills.Strength,
+    "str": Skills.Strength,
+    
+    "Health": Skills.Health,
+    "hp": Skills.Health,
+    
+    "Woodcutting": Skills.Woodcutting,
+    "wood": Skills.Woodcutting,
+    "chop": Skills.Woodcutting,
+    "wdc": Skills.Woodcutting,
+    "chomp": Skills.Woodcutting,
+    
+    "Fishing": Skills.Fishing,
+    "fish": Skills.Fishing,
+    "fsh": Skills.Fishing,
+    "fist": Skills.Fishing,
+    
+    "Mining": Skills.Mining,
+    "mine": Skills.Mining,
+    "min": Skills.Mining,
+    "mining": Skills.Mining,
+    
+    "Crafting": Skills.Crafting,
+    "craft": Skills.Crafting,
+    
+    "Cooking": Skills.Cooking,
+    "cook": Skills.Cooking,
+    "ckn": Skills.Cooking,
+    
+    "Farming": Skills.Farming,
+    "farm": Skills.Farming,
+    "fm": Skills.Farming,
+    
+    "Slayer": Skills.Slayer,
+    "slay": Skills.Slayer,
+    
+    "Magic": Skills.Magic,
+    
+    "Ranged": Skills.Ranged,
+    "range": Skills.Ranged,
+    
+    "Sailing": Skills.Sailing,
+    "sail": Skills.Sailing,
+    
+    "Healing": Skills.Healing,
+    "heal": Skills.Healing,
+    
+    "Gathering": Skills.Gathering,
+    "gath": Skills.Gathering,
+    
+    "Alchemy": Skills.Alchemy,
+    "brew": Skills.Alchemy,
+    "alch": Skills.Alchemy,
+    
+    "all": Skills.All,
+    
+    "level": 'level',
+    "combat": 'combat',
+    "resource": 'resource',
+    "*": 'every',
+    "allall": 'every',
+    "every": 'every',
+}
+
 class RavenCharacterCommands(commands.Component):
     def __init__(self, bot: commands.Bot, rf_api: ravenpy.Ravenfall):
         self.bot = bot
@@ -393,41 +465,146 @@ class RavenCharacterCommands(commands.Component):
         Args:
             user (str, optional): Twitch username.
             character (str, optional): Character index or name.
+            stat (str, optional): Stats to check (up to 10). You can also use
+                'level' for combat level, 'resource' for resource skills,
+                'combat' for combat skills, and 'every' for all skills.
         """
-        # TODO: allow a user to get one or more specific skills for all characters, like in the items command
-        result = await charutils.search_user_characters(self.rf_api, ctx, *args, single_char_only=True)
+        result = await charutils.search_user_characters(
+            self.rf_api, ctx, *args,
+            author_chars_fallback=True,
+            all_chars_fallback=True
+        )
         if result is None:
             return
         user_chars = result.chars
+        stat_query = utils.SplitQuery(skill_map.keys())
+        
+        match_results = utils.split_arguments(
+            result.leftover_args,
+            utils.SplitWildcard(),
+            stat_query,
+            utils.SplitWildcard(),
+            stat_query,
+            utils.SplitWildcard(),
+            stat_query,
+            utils.SplitWildcard(),
+            stat_query,
+            utils.SplitWildcard(),
+            stat_query,
+            utils.SplitWildcard(),
+            stat_query,
+            utils.SplitWildcard(),
+            stat_query,
+            utils.SplitWildcard(),
+            stat_query,
+            utils.SplitWildcard(),
+            stat_query,
+            utils.SplitWildcard(),
+            stat_query,
+        )
+        skills_q_d = {}
+        for thing in [x.text for x in match_results[1::2] if x.text]:
+            skills_q_d[skill_map[thing]] = None
+        
+        skills = {}
+        include_combat_lvl = False
+        for thing in skills_q_d.keys():
+            if isinstance(thing, Skills):
+                if thing != Skills.All:
+                    skills[thing] = None
+                else:
+                    skills[Skills.Attack] = None
+                    skills[Skills.Defense] = None
+                    skills[Skills.Strength] = None
+                    skills[Skills.Health] = None
+            elif thing == "level":
+                # skills['level'] = None
+                include_combat_lvl = True
+            elif thing == 'combat':
+                for skill in ravenpy.fighting_skills:
+                    if skill != Skills.All:
+                        skills[skill] = None
+            elif thing == 'resource':
+                for skill in ravenpy.resource_skills:
+                    skills[skill] = None
+            elif thing == 'every':
+                for skill in ravenpy.Skills:
+                    if skill != Skills.All:
+                        skills[skill] = None
+        
+        specified_skills = False
+        if len(user_chars) == 1 and not skills:
+            ...
+        elif not skills and len(user_chars) > 1:
+            char_names = [x.name for x in user_chars]
+            await ctx.reply(f"uuh Please specify a character name, index or skill. " \
+                f"(Characters: {utils.strjoin(', ', *char_names, before_end=' and ')}.)"
+            )
+            return
+        else:
+            specified_skills = True
+
+        if not skills:
+            for skill in ravenpy.Skills:
+                if skill != Skills.All:
+                    skills[skill] = None
         
         stats_str = []
-        total_levels = 0
-        for stat in user_chars[0].stats:
-            total_levels += stat.level
-            stat_percent = ''
-            if stat.level_exp > 0:
-                stat_percent = f'({stat.level_exp/stat.total_exp_for_level:.0%})'
-            stat_string = utils.strjoin(
-                    ' ', langstuff.skill_contractions[stat.skill], stat.level,
+        totals = [0] * len(user_chars)
+        for skill in skills.keys():
+            single_stat_str = []
+            for idx, character in enumerate(user_chars):
+                stat = character.get_skill(skill)
+                stat_percent = ''
+                if stat.level_exp > 0:
+                    if len(user_chars) == 1 and specified_skills:
+                        stat_percent = f'({stat.level_exp/stat.total_exp_for_level:.1%}) {stat.level_exp:,.0f}/{stat.total_exp_for_level:,} exp'
+                    else:
+                        stat_percent = f'({stat.level_exp/stat.total_exp_for_level:.1%})'
+                train_indicate = ''
+                if skill in character.training_skills:
+                    train_indicate = '■'
+                stat_string = utils.strjoin(
+                    ' ', f"{train_indicate}{stat.level}",
                     utils.strenclose('[', ']', '', utils.strprefix('+', stat.enchant_levels)),
                     stat_percent
                 )
-            if stat.skill in user_chars[0].training_skills:
-                stat_string = f"■ {stat_string.upper()}"
-            else:
-                if len(stats_str) > 0:
-                    stat_string = f"- {stat_string}"
-            stats_str.append(stat_string)
+                single_stat_str.append(stat_string)
+                totals[idx] += stat.level
+            out_stat_str = utils.strjoin(
+                ' ', langstuff.skill_contractions[stat.skill],
+                utils.strjoin(', ', *single_stat_str)
+            )
+            if len(user_chars) == 1 and skill in character.training_skills:
+                out_stat_str = out_stat_str.upper()
+            stats_str.append(out_stat_str)
         
-        char_name = utils.truncate_sentence(user_chars[0].identifier, 40)
-        out_string = utils.strjoin(' ',
-            f"Stats for {user_chars[0].user_name}: {char_name}", '✦', 
-            f"Combat level: {user_chars[0].combat_level}", '✦', 
-            ' '.join(stats_str),
-            '✦', f"Total: {total_levels}"
+        total_levels = ''
+        if not specified_skills:
+            total_levels = f"Total: {', '.join([str(x) for x in totals])}"
+            
+        char_combat_levels = utils.strjoin(', ', *[str(x.combat_level) for x in user_chars])
+        combat_levels = ''
+        if (not specified_skills) or include_combat_lvl:
+            combat_levels = f"Combat level: {char_combat_levels}"
+            
+        char_names = utils.strjoin(', ', *[x.name for x in user_chars], before_end=' and ')
+        out_strings = utils.strjoin_len(' ✦ ', MAX_MSG_LENGTH,
+            f"Stats for {user_chars[0].user_name}: {char_names}",
+            combat_levels,
         )
-        await ctx.reply(out_string, me=True)
-        
+        out_strings = utils.strextend(
+            out_strings, MAX_MSG_LENGTH,
+            ' ✦ ', *utils.strjoin_list(' - ', *stats_str),
+        )
+        if total_levels:
+            out_strings = utils.strextend(
+                out_strings, MAX_MSG_LENGTH,
+                ' ✦ ', total_levels
+            )
+        for text in out_strings:
+            await ctx.reply(text, me=True)
+
     @commands.command(aliases=('charitem',))
     async def items(self, ctx: commands.Context, *args):
         """Show how much of an item a user has.
@@ -439,10 +616,14 @@ class RavenCharacterCommands(commands.Component):
         if not args:
             await ctx.reply(f"uuh Please provide one or more item names")
             return
+        args_filtered = list(args)
+        user_q = ''
+        if args_filtered[0][0] == '@' and utils.is_twitch_username(args_filtered[0]):
+            user_q = args_filtered.pop(0)
         item_query = utils.get_item_split_query()
         item_query.match_threshold = 85
         result = utils.split_arguments(
-            args,
+            args_filtered,
             utils.SplitWildcard(),
             item_query,
             utils.SplitWildcard(),
@@ -464,7 +645,8 @@ class RavenCharacterCommands(commands.Component):
             utils.SplitWildcard(),
             item_query,
         )
-        user_q = result[0].text
+        if not user_q:
+            user_q = result[0].text
         if not result[1].text:
             out_msg = "uuh No valid item names were provided."
             item_strs = []

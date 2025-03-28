@@ -52,7 +52,13 @@ class HelpCommands(commands.Component):
                 else:
                     param_str = f"<{param_str}>"
                 nm_out.append(param_str)
-                command_arguments[param.arg_name] = f"{param_str} – {param.description}"
+                
+                param_optional = ''
+                if param.is_optional:
+                    param_optional = 'Optional'
+                    
+                param_desc = strjoin(' – ', param_str, param_optional, param.description)
+                command_arguments[param.arg_name] = param_desc
         else:
             func_inspect = inspect.signature(command_func)
             for param in [x for x in func_inspect.parameters.values()][2:]:
@@ -69,8 +75,13 @@ class HelpCommands(commands.Component):
                 else:
                     param_str = f"<{param_str}>"
                 nm_out.append(param_str)
-                # TODO: explicitly indicate when an argument is optional
-                command_arguments[param.name] = f"{param_str} – (no description)"
+                
+                param_optional = ''
+                if param_is_optional:
+                    param_optional = 'Optional'
+                    
+                param_desc = strjoin(' – ', param_str, param_optional, "(no description)")
+                command_arguments[param.name] = param_desc
         
         if argument in command_arguments:
             await ctx.reply(command_arguments[argument])
