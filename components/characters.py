@@ -563,7 +563,7 @@ class RavenCharacterCommands(commands.Component):
                         stat_percent = f'({stat.level_exp/stat.total_exp_for_level:.1%})'
                 train_indicate = ''
                 if skill in character.training_skills:
-                    train_indicate = '■'
+                    train_indicate = '■ '
                 stat_string = utils.strjoin(
                     ' ', f"{train_indicate}{stat.level}",
                     utils.strenclose('[', ']', '', utils.strprefix('+', stat.enchant_levels)),
