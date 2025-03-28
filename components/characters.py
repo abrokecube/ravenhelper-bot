@@ -573,7 +573,7 @@ class RavenCharacterCommands(commands.Component):
                 totals[idx] += stat.level
                 
             stat_name = ""
-            if len(skills) > 6:
+            if len(skills) < 7:
                 stat_name = stat.skill.name
             else:
                 stat_name = langstuff.skill_contractions[stat.skill]
