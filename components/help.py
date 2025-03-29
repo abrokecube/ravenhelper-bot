@@ -5,19 +5,29 @@ from utils.utils import strjoin, strenclose
 from docstring_parser import parse
 import inspect
 
+def index_or_none(obj_, index):
+    if index >= len(obj_):
+        return None
+    else:
+        return obj_[index]
+
 class HelpCommands(commands.Component):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
     
     @commands.command(aliases=('commands',))
-    async def help(self, ctx: commands.Context, command: str = "", argument: str = ""):
+    async def help(self, ctx: commands.Context, *args: str):
         """Shows information about available commands.
         
         Args:
             command (str, optional): A command to show details about.
             argument (str, optional): Argument of a command to show details about.
         """
-        if not command in self.bot.commands:
+        full_arg_command = index_or_none(args, 0)
+        arg_command = index_or_none(args, 0)
+        arg_parameter = index_or_none(args, 1)
+
+        if not arg_command in self.bot.commands:
             component_commands = {}
             for comm in self.bot.commands.values():
                 if not comm.component in component_commands:
@@ -31,10 +41,30 @@ class HelpCommands(commands.Component):
             await ctx.reply(f"Commands: {bot_commands}")
             return
 
-        command_class = self.bot.commands[command]
-        command_func = self.bot.commands[command]._callback
+        command_class = self.bot.commands[arg_command]
+        command_func = self.bot.commands[arg_command]._callback
+        
+        idx = 1
+        while True:
+            subcommand_names = set()
+            if isinstance(command_class, commands.Group):
+                for subcommand in command_class.commands.values():
+                    subcommand_names.add(subcommand.name)
+                arg_subcommand = index_or_none(args, idx)
+                if arg_subcommand in command_class.commands:
+                    command_class = command_class.commands[arg_subcommand]
+                    command_func = command_class._callback
+                else:
+                    break
+                arg_command = index_or_none(args, idx)
+                arg_parameter = index_or_none(args, idx+1)
+                full_arg_command += f" {arg_command}"
+                idx += 1
+            else:
+                break
+            
         doc_string = command_func.__doc__
-        nm_out = [f"Usage: {ctx.prefix}{command}"]
+        nm_out = [f"Usage: {ctx.prefix}{full_arg_command}"]
         description = ""
         doc_parsed = None
         command_arguments = {}
@@ -83,19 +113,23 @@ class HelpCommands(commands.Component):
                 param_desc = strjoin(' – ', param_str, param_optional, "(no description)")
                 command_arguments[param.name] = param_desc
         
-        if argument in command_arguments:
-            await ctx.reply(command_arguments[argument])
+        if arg_parameter in command_arguments:
+            await ctx.reply(command_arguments[arg_parameter])
             return
         
         name_and_usage = " ".join(nm_out)
         aliases = ""
         if command_class.aliases:
             alias_list = list(command_class.aliases)
-            if command != command_class.name:
-                alias_list.remove(command)
+            if arg_command != command_class.name:
+                alias_list.remove(arg_command)
                 alias_list.append(command_class.name)
             alias_list.sort()
             aliases = f"Aliases: {', '.join(alias_list)}"
+            
+        subcommands = ""
+        if subcommand_names:
+            subcommands = f"Subcommands: {', '.join(subcommand_names)}"
 
         restrictions = ""
         if command_class.guards:
@@ -105,6 +139,6 @@ class HelpCommands(commands.Component):
                     restr_to.append(guard.__doc__)
             restrictions = f"Limited to: {', '.join(restr_to)}"
         
-        response = strjoin(' – ', name_and_usage, description, restrictions, aliases)
+        response = strjoin(' – ', name_and_usage, description, subcommands, restrictions, aliases)
         await ctx.reply(response)
         ...
