@@ -148,8 +148,8 @@ def truncate_sentence(in_string: str, char_limit: int):
 
     return " ".join(str_split).strip(string.punctuation) + "…"
 
-def format_timedelta(td: timedelta, size=TimeSize.SMALL_SPACES) -> str:  
-    return format_seconds(int(td.total_seconds()), size)
+def format_timedelta(td: timedelta, size=TimeSize.SMALL_SPACES, max_terms=99) -> str:  
+    return format_seconds(int(td.total_seconds()), size, max_terms)
 
 _time_str = {
     'day': ('d', 'd', 'day', ' day', ' day'),
@@ -163,7 +163,7 @@ _time_str = {
 }
 
 
-def format_seconds(seconds: int, size=TimeSize.SMALL):
+def format_seconds(seconds: int, size=TimeSize.SMALL, max_terms=99):
     seconds = int(seconds)
     days, seconds = divmod(seconds, 86400)
     hours, seconds = divmod(seconds, 3600)
@@ -187,6 +187,7 @@ def format_seconds(seconds: int, size=TimeSize.SMALL):
         # bye oxford comma
         last = parts.pop()
         parts[-1] += f" and {last}" 
+    parts = parts[:max_terms]
     if size == TimeSize.LONG:
         return ", ".join(parts).strip()
     elif size in [TimeSize.MEDIUM, TimeSize.MEDIUM_SPACES, TimeSize.SMALL_SPACES]:

@@ -318,6 +318,22 @@ class RavenItemCommands(commands.Component):
             return
         await ctx.reply(f"Search results for '{item_name_full}': {results}")
 
+    @commands.command(aliases=('worth','vendor',))
+    async def value(self, ctx: commands.Context, *item_name):
+        """Get an item's vendor value.
+        
+        Args:
+            item_name (str): Name of an item to query.
+        """
+        item_name_full = " ".join(item_name)
+        if item_name_full.lower() in ['rand', 'random']:
+            result = random.choice(ravenpy.get_all_item_names())
+            item = ravenpy.get_item(result)
+        else:
+            item = await self.search_item(ctx, item_name_full)
+        if not item:
+            return
+        await ctx.reply(f"{item.name} can be vendored for {item.sell_price} coins.", me=True)
 
     @is_bot_owner()
     @commands.command()

@@ -3,7 +3,7 @@ import asyncio
 import twitchio
 import ravenpy
 
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from typing import List
 from twitchio.ext import commands
 from numerize import numerize
@@ -179,34 +179,27 @@ class RavenCharacterCommands(commands.Component):
                 destination = f"waiting for the ferry"
 
             stats = []
-            exp_to_next_level = math.inf
-            num_skills_training = 0
             if not char.in_onsen:
-                stats_to_show: List[Skills] = []
-                if char.training in ravenpy.fighting_skills:
-                    stats.append(f"HP: {char.hp}/{char.health.level}")
-                    if char.training in (Skills.All, Skills.Health):
-                        stats_to_show.extend([Skills.Attack, Skills.Defense, Skills.Strength])
-                    else:
-                        stats_to_show.append(char.training)
-                elif not char.training:
-                    pass
-                else:
-                    stats_to_show.append(char.training)
-                if (not char.island) or char.destination == Islands.Ferry:
-                    stats_to_show.append(Skills.Sailing)
-                if char.has_joined_dungeon or char.in_raid:
-                    stats_to_show.append(Skills.Slayer)
+                # stats_to_show: List[Skills] = []
+                # if char.training in ravenpy.fighting_skills:
+                #     stats.append(f"HP: {char.hp}/{char.health.level}")
+                #     if char.training in (Skills.Melee, Skills.Health):
+                #         stats_to_show.extend([Skills.Attack, Skills.Defense, Skills.Strength])
+                #     else:
+                #         stats_to_show.append(char.training)
+                # elif not char.training:
+                #     pass
+                # else:
+                #     stats_to_show.append(char.training)
+                # if (not char.island) or char.destination == Islands.Ferry:
+                #     stats_to_show.append(Skills.Sailing)
+                # if char.has_joined_dungeon or char.in_raid:
+                #     stats_to_show.append(Skills.Slayer)
 
-                for stat in stats_to_show:
-                    char_stat = char.get_skill(stat)
-                    exp_to_next = char_stat.total_exp_for_level - char_stat.level_exp
-                    if exp_to_next < exp_to_next_level:
-                        exp_to_next_level = exp_to_next
-                    num_skills_training += 1
+                for char_stat in char.training_stats:
                     skill_name = char_stat.skill.name.capitalize()
                     if not is_single_char:
-                        skill_name = langstuff.skill_contractions[stat]
+                        skill_name = langstuff.skill_contractions[char_stat.skill]
                         stats.append(
                             f"{skill_name}: {char_stat.level} [+{char_stat.enchant_levels}] "\
                             f"({char_stat.level_exp/char_stat.total_exp_for_level:.1%})"
@@ -225,11 +218,14 @@ class RavenCharacterCommands(commands.Component):
             else:
                 train_end_time = datetime(2000, 1, 1, tzinfo=timezone.utc)
             training_time_server = train_end_time - now
-            # if char.exp_per_hour > 0 and num_skills_training > 0:
-            #     training_time_exp = timedelta(seconds=(exp_to_next_level) / (char.exp_per_hour/60/60/num_skills_training))
-            # else:
-            #     training_time_exp = math.inf
+            if char.exp_per_hour > 0 and char.training:
+                exp_to_next_level = char.training_stats[0].total_exp_for_level - char.training_stats[0].level_exp
+                training_time_exp = timedelta(seconds=(exp_to_next_level) / (char.exp_per_hour/60/60))
+            else:
+                training_time_exp = math.inf
             s = utils.TimeSize.SMALL_SPACES if is_single_char else utils.TimeSize.SMALL
+            # train_time_format = utils.format_timedelta(training_time_exp, s)
+            # train_time_format = utils.format_timedelta(training_time_server, s) + '/' + utils.format_timedelta(training_time_exp, s)
             train_time_format = utils.format_timedelta(training_time_server, s)
             if char.island and not char.in_onsen:
                 if now < train_end_time:

@@ -13,6 +13,7 @@ from components.characters import RavenCharacterCommands
 from components.raveninfo import RavenInfo
 from components.items import RavenItemCommands
 from components.help import HelpCommands
+from components.marketplace import MarketplaceCommands
 
 load_dotenv()
 
@@ -37,6 +38,7 @@ class Bot(commands.Bot):
         await self.add_component(RavenCharacterCommands(self, rfapi))
         await self.add_component(RavenInfo(self, rfapi))
         await self.add_component(RavenItemCommands(self, rfapi))
+        await self.add_component(MarketplaceCommands(self, rfapi))
 
         await self.add_component(HelpCommands(self))
         await self.add_component(TestCommands(self))
@@ -73,12 +75,18 @@ class TestCommands(commands.Component):
         self.bot = bot
     
     @commands.command(aliases=("hi",))
-    async def hello(self, ctx: commands.Context):
-        await ctx.send(f'hiii {ctx.author.name}! (eventsub)')
+    async def hello(self, ctx: commands.Context, username: str = ""):
+        """hi"""
+        if not username:
+            username = ctx.author.name
+        await ctx.send(f'hiii {username}!')
 
     @commands.command(aliases=("bye",))
-    async def goodbye(self, ctx: commands.Context):
-        await ctx.send(f'byeee {ctx.author.name}')
+    async def goodbye(self, ctx: commands.Context, username: str = ""):
+        """bye"""
+        if not username:
+            username = ctx.author.name
+        await ctx.send(f'byeee {username}')
 
 
 rfapi: ravenpy.Ravenfall

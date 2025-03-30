@@ -4,7 +4,7 @@ from async_lru import alru_cache
 import base64
 import json
 from enum import Enum
-from typing import List, Dict, Any, Callable
+from typing import List, Dict, Any, Callable, Tuple
 import math
 from datetime import datetime, timedelta
 import os
@@ -141,7 +141,7 @@ class CharacterClan:
             for skill in skills:
                 self.skills.append(ClanStat(**skill))
 
-class CharacterItemEnchantment:
+class ItemEnchantment:
     def __init__(self, enchant_string: str):
         stat, percentage = enchant_string.split(":")
         self.percentage = int(percentage.rstrip('%'))/100
@@ -154,11 +154,11 @@ class CharacterItem:
         self.equipped = kwargs.get('equipped')
         self.soulbound = kwargs.get('soulbound')
         enchantment: str = kwargs.get('enchantment')
-        self.enchantments: List[CharacterItemEnchantment] = []
+        self.enchantments: List[ItemEnchantment] = []
         self.active = False
         if enchantment:
             for item in enchantment.split(";"):
-                self.enchantments.append(CharacterItemEnchantment(item))
+                self.enchantments.append(ItemEnchantment(item))
 
     def _set_active(self, value):
         self.active = value
@@ -425,12 +425,12 @@ class Character:
         self.training_stats: List[CharacterStat] = []
         if self.training:
             if self.training in (Skills.All, Skills.Health):
-                self.training_stats.extend([self.attack, self.defense, self.strength])
+                self.training_stats.extend([self.health, self.attack, self.defense, self.strength])
             else:
                 self.training_stats.append(self.get_skill(self.training))
+                if self.training in combat_skills:
+                    self.training_stats.append(self.health)
 
-            if self.training in combat_skills:
-                self.training_stats.append(self.health)
             if self.in_raid or self.in_dungeon:
                 self.training_stats.append(self.slayer)
 
@@ -473,6 +473,22 @@ class ExpMult:
         self.multiplier = kwargs.get('multiplier')
         self.event_name = kwargs.get("eventName")
 
+
+class MarketplaceItem:
+    def __init__(self, **kwargs):
+        self._rf_api: Ravenfall = kwargs.get('rfapi')
+        self._seller_char_id = kwargs.get('sellerCharacterId')
+        self._seller_user_id = kwargs.get('sellerUserId')
+        self.item: Item = _items_id_data[kwargs.get('itemId')]
+        self.amount: int = kwargs.get('amount')
+        self.price_per_item: int = kwargs.get('pricePerItem')
+        self.expires = _parse_time(kwargs.get('expires'))
+        self.created = _parse_time(kwargs.get('created'))
+        self.enchantment: ItemEnchantment | None = _class_or_none(kwargs.get('enchantment'), ItemEnchantment)
+        
+    async def get_seller(self):
+        result = self._rf_api._get_character(self._seller_char_id)
+        return Character(result)
 
 class Ravenfall:
     def __init__(self, username: str, password: str):
@@ -537,7 +553,6 @@ class Ravenfall:
     async def _recipes(self):
         return await self._get(f"/Items/recipes")
 
-    @alru_cache(ttl=3)
     async def _exp_multiplier(self):
         return await self._get(f"/Game/exp-multiplier")
 
@@ -545,15 +560,31 @@ class Ravenfall:
     async def _get_players_twitch(self, twitch_id, char_id=1):
         return await self._get(f"/Players/twitch/{twitch_id}/{char_id}")
     
+    @alru_cache(ttl=5)
+    async def _get_character(self, character_id):
+        return await self._get(f"/Players/{character_id}")
+    
+    @alru_cache(ttl=29)
+    async def _get_marketplace(self, offset=0, size=99999):
+        return await self._get(f"/Marketplace/{offset}/{size}")
+    
     async def get_character(self, twitch_uid, character_id=1):
         result = await self._get_players_twitch(twitch_uid, character_id)
         if not result:
             return None
         return Character(result)
     
+    @alru_cache(ttl=3)
     async def get_global_mult(self):
         result = await self._exp_multiplier()
         return ExpMult(**result)
+    
+    @alru_cache(ttl=30)
+    async def get_marketplace(self) -> Tuple[MarketplaceItem]:
+        result = await self._get_marketplace()
+        market_items = [MarketplaceItem(**x, rfapi=self) for x in result]
+        market_items.sort(key=lambda x: x.created, reverse=True)
+        return tuple(market_items)
 
 MAX_LEVEL = 999
 experience_array = [0] * MAX_LEVEL
