@@ -1,5 +1,6 @@
 # twitchio v3
 from twitchio.ext import commands
+from twitchio.ext import routines
 from twitchio import eventsub
 import twitchio
 from dotenv import load_dotenv
@@ -7,6 +8,7 @@ import os
 import logging
 import asyncio
 import ravenpy
+from datetime import timedelta
 
 from components.textresponses import RavenTextCommands
 from components.characters import RavenCharacterCommands
@@ -42,11 +44,23 @@ class Bot(commands.Bot):
 
         await self.add_component(HelpCommands(self))
         await self.add_component(TestCommands(self))
+        
+        self.auto_token_reload.start()
         LOGGER.info("Finished setup hook!")
 
     async def event_message(self, payload):
+        while self._is_reloading_tokens:
+            await asyncio.sleep(0.5)
+
         payload.text = payload.text.replace("\U000e0000", "").strip()
         return await super().event_message(payload)
+
+    _is_reloading_tokens = False
+    async def reload_tokens(self):
+        self._is_reloading_tokens = True
+        LOGGER.info("Reloading tokens...")
+        await self.load_tokens()
+        self._is_reloading_tokens = False
 
     async def event_command_error(self, payload):
         if isinstance(payload.exception, commands.exceptions.CommandNotFound):
@@ -61,13 +75,21 @@ class Bot(commands.Bot):
         elif isinstance(payload.exception, commands.exceptions.CommandInvokeError):
             if isinstance(payload.exception.original, AssertionError):
                 await payload.context.reply("bruh Error...")
+            elif isinstance(payload.exception.original, twitchio.exceptions.HTTPException):
+                if payload.exception.original.status == 401:
+                    if not self._is_reloading_tokens:
+                        await self.reload_tokens()
+                    await self.event_message(payload.context.message)
             else:
                 await payload.context.reply("bruh Error.")
             return await super().event_command_error(payload)
         else:
             # await payload.context.reply("bruh Error.")
             return await super().event_command_error(payload)
-
+    
+    @routines.routine(delta=timedelta(days=1), wait_first=True, wait_remainder=True)
+    async def auto_token_reload(self):
+        await self.reload_tokens()
 
 
 class TestCommands(commands.Component):
@@ -87,6 +109,12 @@ class TestCommands(commands.Component):
         if not username:
             username = ctx.author.name
         await ctx.send(f'byeee {username}')
+    
+    # @is_bot_owner()
+    # @commands.command()
+    # async def reload_tokens(self, ctx: commands.Context):
+    #     await self.bot.load_tokens()        
+    #     await ctx.reply(f'Reloaded tokens', me=True)
 
 
 rfapi: ravenpy.Ravenfall

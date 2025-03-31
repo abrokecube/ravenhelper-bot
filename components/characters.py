@@ -1,6 +1,4 @@
 import math
-import asyncio
-import twitchio
 import ravenpy
 
 from datetime import datetime, timezone, timedelta
@@ -86,6 +84,14 @@ skill_map = {
     "allall": 'every',
     "every": 'every',
 }
+
+def get_char_identifier(char: ravenpy.Character):
+    char_name = utils.truncate_sentence(char.name, 40)
+    if char_name == str(char.index):
+        char_name = f"Character {char_name}"
+    out_str = f"{char_name} ({char.character_index}, Lv{char.combat_level})"
+    return out_str
+    
 
 class RavenCharacterCommands(commands.Component):
     def __init__(self, bot: commands.Bot, rf_api: ravenpy.Ravenfall):
@@ -180,22 +186,6 @@ class RavenCharacterCommands(commands.Component):
 
             stats = []
             if not char.in_onsen:
-                # stats_to_show: List[Skills] = []
-                # if char.training in ravenpy.fighting_skills:
-                #     stats.append(f"HP: {char.hp}/{char.health.level}")
-                #     if char.training in (Skills.Melee, Skills.Health):
-                #         stats_to_show.extend([Skills.Attack, Skills.Defense, Skills.Strength])
-                #     else:
-                #         stats_to_show.append(char.training)
-                # elif not char.training:
-                #     pass
-                # else:
-                #     stats_to_show.append(char.training)
-                # if (not char.island) or char.destination == Islands.Ferry:
-                #     stats_to_show.append(Skills.Sailing)
-                # if char.has_joined_dungeon or char.in_raid:
-                #     stats_to_show.append(Skills.Slayer)
-
                 for char_stat in char.training_stats:
                     skill_name = char_stat.skill.name.capitalize()
                     if not is_single_char:
@@ -210,7 +200,7 @@ class RavenCharacterCommands(commands.Component):
                             f"({char_stat.level_exp/char_stat.total_exp_for_level:.1%}) "\
                             f"{char_stat.level_exp:,.0f}/{char_stat.total_exp_for_level:,.0f} EXP"
                         )
-                
+            combat_mult = 5
             train_time = ""
             now = datetime.now(timezone.utc)
             if char.estimated_level_time:
@@ -219,14 +209,20 @@ class RavenCharacterCommands(commands.Component):
                 train_end_time = datetime(2000, 1, 1, tzinfo=timezone.utc)
             training_time_server = train_end_time - now
             if char.exp_per_hour > 0 and char.training:
-                exp_to_next_level = char.training_stats[0].total_exp_for_level - char.training_stats[0].level_exp
+                # closest_stat = min(*char.training_stats, key=lambda x: x.total_exp_for_level-x.level_exp)
+                closest_stat = char.training_stats[0]
+                exp_to_next_level = closest_stat.total_exp_for_level-closest_stat.level_exp
                 training_time_exp = timedelta(seconds=(exp_to_next_level) / (char.exp_per_hour/60/60))
             else:
-                training_time_exp = math.inf
+                training_time_exp = timedelta(weeks=9999)
             s = utils.TimeSize.SMALL_SPACES if is_single_char else utils.TimeSize.SMALL
             # train_time_format = utils.format_timedelta(training_time_exp, s)
             # train_time_format = utils.format_timedelta(training_time_server, s) + '/' + utils.format_timedelta(training_time_exp, s)
+            if char.training in (Skills.Attack, Skills.Defense, Skills.Strength) and not (char.in_raid or char.in_dungeon):
+                training_time_exp /= combat_mult
+                training_time_server /= combat_mult
             train_time_format = utils.format_timedelta(training_time_server, s)
+            # train_time_gap = utils.format_timedelta((training_time_exp - training_time_server))
             if char.island and not char.in_onsen:
                 if now < train_end_time:
                     if training_time_server.total_seconds() > 60*60*24*100:  # 99 days
@@ -453,6 +449,124 @@ class RavenCharacterCommands(commands.Component):
         user_name = user_chars[0].user_name
         coin_amount = user_chars[0].coins
         await ctx.reply(f"/me {user_name} has {utils.pl(coin_amount, 'coin')}")
+
+
+    @commands.command()
+    async def training(self, ctx: commands.Context, user: str = ''):
+        """Get a user's currently training skills. 
+        
+        Args:
+            user (str, optional): Twitch username.
+        """
+        user_chars = await charutils.get_user_characters(self.rf_api, ctx, user)
+        if user_chars is None:
+            return
+        user_name = user_chars[0].user_name
+                    
+        char_trainings = [f"{get_char_identifier(x)} is training {x.training.name}" for x in user_chars]
+        await ctx.reply(
+            f"{user_name} ✦ {utils.strjoin(' – ', *char_trainings)}",
+            me=True
+        )
+
+
+    # _training_currently_calculating = set()
+    
+    # @commands.command(aliases=('train',))
+    # async def training(self, ctx: commands.Context, user: str = ''):
+    #     """Get a user's currently training skills. Provides a *slightly* more accurate
+    #     training time estimate.
+        
+    #     Args:
+    #         user (str, optional): Twitch username.
+    #     """
+    #     user_chars = await charutils.get_user_characters(self.rf_api, ctx, user)
+    #     if user_chars is None:
+    #         return
+    #     user_name = user_chars[0].user_name
+        
+    #     calculate_training_time = True
+    #     end_msg = "Calculating training time... (>30 seconds)"
+    #     calc_key = f"{ctx.author.id}_{user_name}"
+    #     if calc_key in self._training_currently_calculating:
+    #         calculate_training_time = False
+    #         end_msg = "Calculation is currently in progress..."
+    #     else:
+    #         self._training_currently_calculating.add(calc_key)
+            
+    #     char_trainings = [f"{get_char_identifier(x)} is training {x.training.name}" for x in user_chars]
+    #     await ctx.reply(
+    #         f"{user_name} ✦ {utils.strjoin(' – ', *char_trainings)} ✦ {end_msg}",
+    #         me=True
+    #     )
+        
+    #     if not calculate_training_time:
+    #         return
+        
+    #     samples = [[] for _ in range(len(user_chars))]
+    #     target_samples = 10
+    #     while min([len(x) for x in samples]) < target_samples:
+    #         updated_char_tasks = []
+    #         updated_char_indeces = []
+    #         for idx, char in enumerate(user_chars):
+    #             # if len(samples[idx]) < target_samples:
+    #                 updated_char_tasks.append(self.rf_api.get_character(char.twitch_id, char.index, random.random()))
+    #                 updated_char_indeces.append(idx)
+    #         updated_chars = await asyncio.gather(*updated_char_tasks, return_exceptions=not DEBUG)
+            
+    #         for idx, char in zip(updated_char_indeces, updated_chars):
+    #             char: ravenpy.Character
+    #             est_ts = char.estimated_level_time.timestamp()
+    #             recieve_ts = char.time_recieved_datetime.timestamp()
+    #             exp_h = char.exp_per_hour
+    #             stat = char.training_stats[0]
+    #             est_ts_exp_h = recieve_ts + (stat.total_exp_for_level - stat.level_exp) / exp_h*60*60
+    #             exp = stat.level_exp
+    #             est_diff = (est_ts - est_ts_exp_h)
+    #             if samples[idx] and exp_h != samples[idx][-1][2]:
+    #                 samples[idx].clear()
+    #                 logging.info("Exp rate is changing")
+    #             if not samples[idx] or samples[idx][-1][0] != est_ts:
+    #                 samples[idx].append((exp, recieve_ts, exp_h, est_diff))
+    #                 # samples[idx].append((est_ts, recieve_ts, exp_h))
+    #             else:
+    #                 logging.info("Skipped a timestamp")
+    #         await asyncio.sleep(4)
+    #     avg_rates = []
+    #     for data in samples:
+    #         rates = []
+    #         for i in range(1, len(data)):
+    #             num_diff = data[i][0] - data[i - 1][0]
+    #             time_diff = data[i][1] - data[i - 1][1]
+    #             if time_diff != 0:
+    #                 rates.append(num_diff / time_diff)
+    #         avg_rates.append(sum(rates) / len(rates))
+    #         logging.info([round(x[0], 3) for x in data])
+    #         logging.info([round(x, 3) for x in rates])
+            
+    #     logging.info(avg_rates)
+    #     char_estimates = []
+    #     t = datetime.now(timezone.utc)
+    #     for idx, char in enumerate(user_chars):
+    #         stat = char.training_stats[0]
+    #         rate = avg_rates[idx]
+    #         # time_difference = char.estimated_level_time - t
+    #         # actual_finish_time = t + time_difference / (1 - rate)
+    #         # time_to_level = utils.format_timedelta(
+    #         #     actual_finish_time-t, utils.TimeSize.MEDIUM_SPACES
+    #         # )
+    #         time_to_level = utils.format_seconds((stat.total_exp_for_level-stat.level_exp) / rate)
+    #         char_identifier = get_char_identifier(char)
+    #         char_estimates.append(
+    #             f"{char_identifier}: {stat.skill.name} {stat.level} " \
+    #             f"({stat.level_exp/stat.total_exp_for_level:.1%}) – Level in {time_to_level}"
+    #         )
+    #     await ctx.reply(
+    #         f"Estimated training time to next level for {user_name} ✦ " \
+    #         f"{utils.strjoin(' ✦ ', *char_estimates)}",
+    #         me=True
+    #     )
+    #     self._training_currently_calculating.remove(calc_key)
 
     @commands.command()
     async def stats(self, ctx: commands.Context, *args):
@@ -688,3 +802,4 @@ class RavenCharacterCommands(commands.Component):
         )
         for thing in out_text:
             await ctx.reply(thing, me=True)
+            

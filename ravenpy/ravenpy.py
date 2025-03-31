@@ -6,8 +6,9 @@ import json
 from enum import Enum
 from typing import List, Dict, Any, Callable, Tuple
 import math
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import os
+import time
 
 import thefuzz
 import thefuzz.fuzz
@@ -144,7 +145,7 @@ class CharacterClan:
 class ItemEnchantment:
     def __init__(self, enchant_string: str):
         stat, percentage = enchant_string.split(":")
-        self.percentage = int(percentage.rstrip('%'))/100
+        self.percentage = float(percentage.rstrip('%'))/100
         self.stat = Enchantments[stat.capitalize()]
 
 class CharacterItem:
@@ -267,9 +268,12 @@ def _call_or_none(_obj: Any, _callable: Callable):
 class Character:
     def __init__(self, data):
         self._raw: Dict = data
+        self.time_recieved = datetime.now(timezone.utc)
         self.id: str = data['id']
+        self.char_id: str = self.id
         self.user_id: str = data['userId']
         self.user_name: str = data['userName']
+        self.twitch_id: str = data['twitch']['platformId']
         self.identifier: str = data['identifier']
         self.character_index: int = data['characterIndex']+1
         self.index = self.character_index
@@ -346,7 +350,7 @@ class Character:
         self.island: Islands = _getitem_or_none(state['island'], Islands)
         self.destination: Islands = _getitem_or_none(state['destination'], Islands)
         self.waiting_for_ferry: bool = self.destination and self.destination == self.island
-        self.estimated_level_time: timedelta = _call_or_none(state['estimatedTimeForLevelUp'], _parse_time)
+        self.estimated_level_time: datetime = _call_or_none(state['estimatedTimeForLevelUp'], _parse_time)
         self.x: int = state['x']
         self.y: int = state['y']
         self.z: int = state['z']
@@ -419,7 +423,7 @@ class Character:
                 self.target_item = inv_item
 
         if not self.training:
-            if (not self.island) and (not self.destination == Islands.Ferry):
+            if (not self.island) or self.destination == Islands.Ferry:
                 self.training = Skills.Sailing
 
         self.training_stats: List[CharacterStat] = []
@@ -477,7 +481,7 @@ class ExpMult:
 class MarketplaceItem:
     def __init__(self, **kwargs):
         self._rf_api: Ravenfall = kwargs.get('rfapi')
-        self._seller_char_id = kwargs.get('sellerCharacterId')
+        self.seller_char_id = kwargs.get('sellerCharacterId')
         self._seller_user_id = kwargs.get('sellerUserId')
         self.item: Item = _items_id_data[kwargs.get('itemId')]
         self.amount: int = kwargs.get('amount')
@@ -487,7 +491,7 @@ class MarketplaceItem:
         self.enchantment: ItemEnchantment | None = _class_or_none(kwargs.get('enchantment'), ItemEnchantment)
         
     async def get_seller(self):
-        result = self._rf_api._get_character(self._seller_char_id)
+        result = self._rf_api._get_character(self.seller_char_id)
         return Character(result)
 
 class Ravenfall:
@@ -556,31 +560,37 @@ class Ravenfall:
     async def _exp_multiplier(self):
         return await self._get(f"/Game/exp-multiplier")
 
-    @alru_cache(ttl=5)
     async def _get_players_twitch(self, twitch_id, char_id=1):
         return await self._get(f"/Players/twitch/{twitch_id}/{char_id}")
     
-    @alru_cache(ttl=5)
     async def _get_character(self, character_id):
         return await self._get(f"/Players/{character_id}")
     
     @alru_cache(ttl=29)
-    async def _get_marketplace(self, offset=0, size=99999):
+    async def _get_marketplace(self, offset=0, size=99999, *_):
         return await self._get(f"/Marketplace/{offset}/{size}")
     
-    async def get_character(self, twitch_uid, character_id=1):
+    @alru_cache(ttl=4)
+    async def get_character(self, twitch_uid, character_id=1, *_):
         result = await self._get_players_twitch(twitch_uid, character_id)
         if not result:
             return None
         return Character(result)
     
+    @alru_cache(ttl=4)
+    async def get_character_from_id(self, ravenfall_char_id, *_):
+        result = await self._get_character(ravenfall_char_id)
+        if not result:
+            return None
+        return Character(result)
+    
     @alru_cache(ttl=3)
-    async def get_global_mult(self):
+    async def get_global_mult(self, *_):
         result = await self._exp_multiplier()
         return ExpMult(**result)
     
     @alru_cache(ttl=30)
-    async def get_marketplace(self) -> Tuple[MarketplaceItem]:
+    async def get_marketplace(self, *_) -> Tuple[MarketplaceItem]:
         result = await self._get_marketplace()
         market_items = [MarketplaceItem(**x, rfapi=self) for x in result]
         market_items.sort(key=lambda x: x.created, reverse=True)

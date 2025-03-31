@@ -162,7 +162,7 @@ class RavenTextCommands(commands.Component):
                         "E.Dragon - 750 • E.Abraxas - 800 • E.Phantom - 850 • E.Lionsbane - 875 • " \
                         f"E.Ether - 900 • E.Ancient - 950 • E.Atlarus - 999{msg_postfix}")
 
-    @commands.command(aliases=('training','train','skill'))
+    @commands.command(aliases=('skill','train'))
     async def skills(self, ctx: commands.Context):
         await ctx.reply("/me Skills you can train: Woodcutting, Farming, Crafting, Cooking, Fishing, Alchemy, Gathering, Mining, Health, Attack, Defense, Strength, Magic, Ranged, Healing and Sailing")
 

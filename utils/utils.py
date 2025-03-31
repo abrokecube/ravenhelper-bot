@@ -165,6 +165,10 @@ _time_str = {
 
 def format_seconds(seconds: int, size=TimeSize.SMALL, max_terms=99):
     seconds = int(seconds)
+    negative = False
+    if seconds < 0:
+        seconds = -seconds
+        negative = True
     days, seconds = divmod(seconds, 86400)
     hours, seconds = divmod(seconds, 3600)
     minutes, seconds = divmod(seconds, 60)
@@ -188,6 +192,10 @@ def format_seconds(seconds: int, size=TimeSize.SMALL, max_terms=99):
         last = parts.pop()
         parts[-1] += f" and {last}" 
     parts = parts[:max_terms]
+    
+    if negative:
+        parts[0] = f"-{parts[0]}"
+    
     if size == TimeSize.LONG:
         return ", ".join(parts).strip()
     elif size in [TimeSize.MEDIUM, TimeSize.MEDIUM_SPACES, TimeSize.SMALL_SPACES]:
