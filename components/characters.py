@@ -216,12 +216,12 @@ class RavenCharacterCommands(commands.Component):
             else:
                 training_time_exp = timedelta(weeks=9999)
             s = utils.TimeSize.SMALL_SPACES if is_single_char else utils.TimeSize.SMALL
-            # train_time_format = utils.format_timedelta(training_time_exp, s)
             # train_time_format = utils.format_timedelta(training_time_server, s) + '/' + utils.format_timedelta(training_time_exp, s)
             if char.training in (Skills.Attack, Skills.Defense, Skills.Strength) and not (char.in_raid or char.in_dungeon):
                 training_time_exp /= combat_mult
                 training_time_server /= combat_mult
-            train_time_format = utils.format_timedelta(training_time_server, s)
+            # train_time_format = utils.format_timedelta(training_time_server, s)
+            train_time_format = utils.format_timedelta(training_time_exp, s)
             # train_time_gap = utils.format_timedelta((training_time_exp - training_time_server))
             if char.island and not char.in_onsen:
                 if now < train_end_time:
@@ -241,24 +241,18 @@ class RavenCharacterCommands(commands.Component):
                 else:
                     exp_per_hr = f"{numerize.numerize(char.exp_per_hour,2)} exp/hr"
 
-            auto_dung = ""
+            status_effects = ""
             if is_single_char:
-                if char.auto_join_dungeon_count == math.inf:
-                    auto_dung = "Auto-joining dungeons"
-                elif char.auto_join_dungeon_count > 0:
-                    auto_dung = f"Auto-joining {utils.pl(char.auto_join_dungeon_count, 'dungeons')}"
-            auto_raid = ""
-            if is_single_char:
-                if char.auto_join_raid_count == math.inf:
-                    auto_raid = "Auto-joining raids"
-                elif char.auto_join_raid_count > 0:
-                    auto_raid = f"Auto-joining {utils.pl(char.auto_join_raid_count, 'raids')}"
-            auto_rest = ""
-            if is_single_char:
-                if char.is_auto_resting and (char.auto_rest_target is not None):
-                    auto_rest = "Auto-resting"
-                    if char.auto_rest_start != 0 or char.auto_rest_target != 120:
-                        auto_rest = f"Auto-resting from {char.auto_rest_start}m to {char.auto_rest_target}m"
+                char_statuses = []
+                for status in char.status_effects:
+                    char_statuses.append(
+                        f"{langstuff.status_effect_names_short[status.effect]} "\
+                        f"+{status.amount:.1%} for {utils.format_seconds(status.time_left)}"
+                    )
+                status_effects = utils.strjoin(', ', *char_statuses, before_end=' and ')
+            else:
+                if len(char.status_effects) > 0:
+                    status_effects = f"{utils.pl(len(char.status_effects), 'active status effect')}"
 
             clan = ""
             if is_single_char:
@@ -275,7 +269,7 @@ class RavenCharacterCommands(commands.Component):
                 " ", char_name, index_and_combat_level, "is", what, where, entering_dungeon, where_island, captain, destination, rested
             )
             out_str.append(utils.strjoin(
-                " – ", summary, target_item, utils.strjoin(', ', *stats), exp_per_hr, train_time, auto_dung, auto_raid, auto_rest, clan
+                " – ", summary, target_item, utils.strjoin(', ', *stats), exp_per_hr, train_time, status_effects, clan
             ))
         # coins = f"{utils.pl(user_chars[0].coins, 'coins')}"
         user_name = f"󠀀{user_chars[0].user_name}"
@@ -438,7 +432,7 @@ class RavenCharacterCommands(commands.Component):
 
     @commands.command(aliases=('res','coins','coin'))
     async def resources(self, ctx: commands.Context, user: str = ''):
-        """Get a user's coin amount
+        """Get a user's coin amount and inventory value.
         
         Args:
             user (str, optional): Twitch username.
@@ -448,7 +442,21 @@ class RavenCharacterCommands(commands.Component):
             return
         user_name = user_chars[0].user_name
         coin_amount = user_chars[0].coins
-        await ctx.reply(f"/me {user_name} has {utils.pl(coin_amount, 'coin')}")
+        worth_strings = []
+        total_worth = coin_amount
+        for char in user_chars:
+            inventory_worth = 0
+            for item in char.items:
+                inventory_worth += item.item.sell_price * item.amount
+            total_worth += inventory_worth
+            worth_strings.append(
+                f"{utils.truncate_sentence(char.name, 30)}: {utils.pl(inventory_worth, 'coin')}"
+            )            
+        await ctx.reply(
+            f"/me {user_name} has {utils.pl(coin_amount, 'coin')} ✦ "\
+            f"Inventory worth: {utils.strjoin(' • ', *worth_strings)} ✦ "\
+            f"Net worth: {utils.pl(total_worth, 'coin')}"
+        )
 
 
     @commands.command()
@@ -468,8 +476,118 @@ class RavenCharacterCommands(commands.Component):
             f"{user_name} ✦ {utils.strjoin(' – ', *char_trainings)}",
             me=True
         )
+        
+    @commands.command()
+    async def auto(self, ctx: commands.Context, user: str = ''):
+        """Get a user's auto dungeon/raid/rest status.
+        
+        Args:
+            user (str, optional): Twitch username.
+        """
+        user_chars = await charutils.get_user_characters(self.rf_api, ctx, user)
+        if user_chars is None:
+            return
+        user_name = user_chars[0].user_name
+        char_strs = []
+        for char in user_chars:
+            char_statuses = []
+            if char.auto_join_dungeon_count == math.inf:
+                char_statuses.append("dungeons")
+            elif char.auto_join_dungeon_count > 0:
+                char_statuses.append(f"{utils.pl(char.auto_join_dungeon_count, 'dungeons')}")
+                
+            if char.auto_join_raid_count == math.inf:
+                char_statuses.append("raids")
+            elif char.auto_join_raid_count > 0:
+                char_statuses.append(f"{utils.pl(char.auto_join_raid_count, 'raids')}")
 
+            if char.is_auto_resting and (char.auto_rest_target is not None):
+                if char.auto_rest_start != 0 or char.auto_rest_target != 120:
+                    char_statuses.append(
+                        f"resting from {char.auto_rest_start} min to {char.auto_rest_target} min"
+                    )
+                else:
+                    char_statuses.append("resting")
+            if len(char_statuses) == 0:
+                char_statuses.append("none")
+            char_name = utils.truncate_sentence(char.name, 30)
+            char_strs.append(
+                f"{char_name}: {utils.strjoin(', ', *char_statuses, before_end=' and ').capitalize()}"
+            )
+        await ctx.reply(
+            f"Auto status for {user_name} ✦ {utils.strjoin(' • ', *char_strs)}",
+            me=True
+        )
+        
+    @commands.command(aliases=('effects',))
+    async def status(self, ctx: commands.Context, user: str = ''):
+        """Get a user's active status effects.
+        
+        Args:
+            user (str, optional): Twitch username.
+        """
+        user_chars = await charutils.get_user_characters(self.rf_api, ctx, user)
+        if user_chars is None:
+            return
+        user_name = user_chars[0].user_name
+        char_strs = []
+        for char in user_chars:
+            char_statuses = []
+            for status in char.status_effects:
+                char_statuses.append(
+                    f"{langstuff.status_effect_names[status.effect]} "\
+                    f"+{status.amount:.1%} for {utils.format_seconds(status.time_left)}"
+                )
+            if len(char_statuses) == 0:
+                char_statuses.append("No active effects")
 
+            char_name = utils.truncate_sentence(char.name, 30)
+            char_strs.append(
+                f"{char_name}: {utils.strjoin(', ', *char_statuses, before_end=' and ')}"
+            )
+
+        await ctx.reply(
+            f"Active status effects for {user_name} ✦ {utils.strjoin(' • ', *char_strs)}",
+            me=True
+        )
+        
+    @commands.command()
+    async def rested(self, ctx: commands.Context, user: str = ''):
+        """Get a user's rested status.
+        
+        Args:
+            user (str, optional): Twitch username.
+        """
+        user_chars = await charutils.get_user_characters(self.rf_api, ctx, user)
+        if user_chars is None:
+            return
+        user_name = user_chars[0].user_name
+        char_strs = []
+        for char in user_chars:
+            is_rested = char.rested_time.total_seconds() > 0
+            char_str = "Not rested."
+            rest_time = utils.format_timedelta(char.rested_time, utils.TimeSize.MEDIUM_SPACES)
+            if char.in_onsen:
+                char_str = f"Currently resting with {rest_time} of time."
+            elif is_rested:
+                char_str = f"Rested with {rest_time} of time."
+            if char.auto_rest_start != 0 or char.auto_rest_target != 120:
+                char_str += " "
+                if char.in_onsen:
+                    leave_time = utils.format_seconds(char.auto_rest_target-char.rested_time.total_seconds()/60, utils.TimeSize.MEDIUM_SPACES)
+                    char_str += f"Leaving in {leave_time}."
+                elif is_rested:
+                    enter_time = utils.format_seconds((char.rested_time.total_seconds()/60)-char.auto_rest_start, utils.TimeSize.MEDIUM_SPACES)
+                    char_str += f"Returning in {enter_time}."
+            
+            char_name = utils.truncate_sentence(char.name, 30)
+            char_strs.append(
+                f"{char_name}: {char_str}"
+            )
+        await ctx.reply(
+            f"Rested status for {user_name} ✦ {utils.strjoin(' • ', *char_strs)}",
+            me=True
+        )
     # _training_currently_calculating = set()
     
     # @commands.command(aliases=('train',))

@@ -57,7 +57,7 @@ class Item:
         self.craft_level = data.get("craft_level")
         self.min_success_rate = data.get("min_success_rate")
         self.max_success_rate = data.get("max_success_rate")
-        self.preperation_time = data.get("preperation_time")
+        self.preparation_time = data.get("preperation_time")
         self.is_fixed_success_rate = data.get("is_fixed_success_rate")
         self.drop_skill = Skills[data.get("drop_skill")] if data.get("drop_skill") else None
         self.drop_level = data.get("drop_level")
@@ -341,6 +341,7 @@ class Character:
         self.in_arena: bool = state['inArena']
         self.in_dungeon: bool = state['inDungeon']
         self.in_onsen: bool = state['inOnsen']
+        self.is_resting: bool = self.in_onsen
         self.has_joined_dungeon: bool = state['joinedDungeon']
         self.exp_per_hour: int = state['expPerHour']
         if not self.exp_per_hour:
@@ -365,8 +366,8 @@ class Character:
         if state['autoJoinRaidCounter'] == 2147483647:
             self.auto_join_raid_count = math.inf
         self.is_auto_resting = state['isAutoResting']
-        self.auto_rest_start = state['autoRestStart']
-        self.auto_rest_target = state['autoRestTarget']
+        self.auto_rest_start = state['autoRestStart'] or 0
+        self.auto_rest_target = state['autoRestTarget'] or 120
         
         self.dungeon_combat_style = _call_or_none(state['dungeonCombatStyle'], Skills)
         self.raid_combat_style = _call_or_none(state['raidCombatStyle'], Skills)
@@ -393,7 +394,7 @@ class Character:
                 if enchant.stat.value < 17:  # not power, aim or armor
                     self.get_skill(Skills(enchant.stat.value))._add_enchant(enchant.percentage)
         
-        self.status_effects = []
+        self.status_effects: List[CharacterStatusEffect] = []
         for effect in data['statusEffects']:
             self.status_effects.append(CharacterStatusEffect(**effect))
 
