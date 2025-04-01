@@ -12,6 +12,7 @@ from datetime import timedelta
 
 from components.textresponses import RavenTextCommands
 from components.characters import RavenCharacterCommands
+from components.charactertools import RavenCharacterTools
 from components.raveninfo import RavenInfo
 from components.items import RavenItemCommands
 from components.help import HelpCommands
@@ -38,6 +39,7 @@ class Bot(commands.Bot):
         await self.subscribe_websocket(payload=payload)
         await self.add_component(RavenTextCommands(self))
         await self.add_component(RavenCharacterCommands(self, rfapi))
+        await self.add_component(RavenCharacterTools(self, rfapi))
         await self.add_component(RavenInfo(self, rfapi))
         await self.add_component(RavenItemCommands(self, rfapi))
         await self.add_component(MarketplaceCommands(self, rfapi))

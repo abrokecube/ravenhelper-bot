@@ -13,6 +13,7 @@ from cachetools import TTLCache, cached
 import re 
 from enum import Enum
 from math import inf
+import aiohttp
 
 
 class TimeSize(Enum):
@@ -374,6 +375,27 @@ def is_twitch_username(text: str):
 @cached(cache=TTLCache(maxsize=1, ttl=30))
 def get_item_split_query():
     return SplitQuery(ravenpy.get_all_item_names())
+
+async def upload_to_pastes(text: str):
+    async with aiohttp.ClientSession() as s:
+        r = await s.post(
+            "https://api.pastes.dev/post",
+            headers={
+                "Content-Type": "text/plain"
+            },
+            data=text
+        )
+        if r.status == 201:
+            return f"https://pastes.dev/{(await r.json())['key']}"
+        else:
+            return None
+
+def get_char_identifier(char: ravenpy.Character):
+    char_name = truncate_sentence(char.name, 40)
+    if char_name == str(char.index):
+        char_name = f"Character {char_name}"
+    out_str = f"{char_name} ({char.character_index}, Lv{char.combat_level})"
+    return out_str
 
 def is_bot_owner():
     def predicate(ctx: commands.Context) -> bool:
