@@ -574,10 +574,10 @@ class RavenCharacterCommands(commands.Component):
             if char.auto_rest_start is not None:
                 char_str += " "
                 if char.in_onsen:
-                    leave_time = utils.format_seconds(char.auto_rest_target-char.rested_time.total_seconds()/60, utils.TimeSize.MEDIUM_SPACES)
+                    leave_time = utils.format_seconds((char.auto_rest_target-char.rested_time.total_seconds()/60)*60, utils.TimeSize.MEDIUM_SPACES)
                     char_str += f"Leaving in {leave_time}."
                 elif is_rested:
-                    enter_time = utils.format_seconds((char.rested_time.total_seconds()/60)-char.auto_rest_start, utils.TimeSize.MEDIUM_SPACES)
+                    enter_time = utils.format_seconds(((char.rested_time.total_seconds()/60)-char.auto_rest_start)*60, utils.TimeSize.MEDIUM_SPACES)
                     char_str += f"Returning in {enter_time}."
             
             char_name = utils.truncate_sentence(char.name, 30)
