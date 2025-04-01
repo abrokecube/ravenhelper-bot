@@ -42,6 +42,11 @@ class RavenCharacterTools(commands.Component):
             out_commands.append(
                 f"!gift {target_user} {item.item.name} {item.amount}"
             )
+
+        if len(out_commands) == 0:
+            await ctx.reply("uuh This character has no items!")
+            return
+        
         out_str = "\n".join(out_commands)
         text_url = await utils.upload_to_pastes(out_str)
         if not text_url:
