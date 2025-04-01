@@ -501,7 +501,7 @@ class RavenCharacterCommands(commands.Component):
             elif char.auto_join_raid_count > 0:
                 char_statuses.append(f"{utils.pl(char.auto_join_raid_count, 'raids')}")
 
-            if char.is_auto_resting and (char.auto_rest_target is not None):
+            if char.is_auto_resting and (char.auto_rest_start is not None):
                 if char.auto_rest_start != 0 or char.auto_rest_target != 120:
                     char_statuses.append(
                         f"resting from {char.auto_rest_start} min to {char.auto_rest_target} min"
@@ -571,7 +571,7 @@ class RavenCharacterCommands(commands.Component):
                 char_str = f"Currently resting with {rest_time} of time."
             elif is_rested:
                 char_str = f"Rested with {rest_time} of time."
-            if char.auto_rest_start != 0 or char.auto_rest_target != 120:
+            if char.auto_rest_start is not None:
                 char_str += " "
                 if char.in_onsen:
                     leave_time = utils.format_seconds(char.auto_rest_target-char.rested_time.total_seconds()/60, utils.TimeSize.MEDIUM_SPACES)

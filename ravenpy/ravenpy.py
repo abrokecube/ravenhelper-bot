@@ -366,8 +366,8 @@ class Character:
         if state['autoJoinRaidCounter'] == 2147483647:
             self.auto_join_raid_count = math.inf
         self.is_auto_resting = state['isAutoResting']
-        self.auto_rest_start = state['autoRestStart'] or 0
-        self.auto_rest_target = state['autoRestTarget'] or 120
+        self.auto_rest_start = state['autoRestStart']
+        self.auto_rest_target = state['autoRestTarget']
         
         self.dungeon_combat_style = _call_or_none(state['dungeonCombatStyle'], Skills)
         self.raid_combat_style = _call_or_none(state['raidCombatStyle'], Skills)
