@@ -119,11 +119,11 @@ class TestCommands(commands.Component):
     #     await ctx.reply(f'Reloaded tokens', me=True)
 
 
-rfapi: ravenpy.Ravenfall
+rfapi: ravenpy.RavenNest
 async def main() -> None:
     global rfapi
     twitchio.utils.setup_logging(level=int(os.getenv("LOGGING_LEVEL")))
-    rfapi = ravenpy.Ravenfall(os.getenv("API_USER"), os.getenv("API_PASS"))
+    rfapi = ravenpy.RavenNest(os.getenv("API_USER"), os.getenv("API_PASS"))
     await rfapi.login()
 
     async def runner() -> None:

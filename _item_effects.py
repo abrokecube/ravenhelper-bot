@@ -9,7 +9,7 @@ import pandas as pd
 
 load_dotenv()
 async def main():
-    rf = ravenpy.Ravenfall(os.getenv("API_USER"), os.getenv("API_PASS"))
+    rf = ravenpy.RavenNest(os.getenv("API_USER"), os.getenv("API_PASS"))
     await rf.login()
     await rf.refresh_items()
 

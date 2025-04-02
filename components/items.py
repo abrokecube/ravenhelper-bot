@@ -58,7 +58,7 @@ def get_split_query():
     return SplitQuery(ravenpy.get_all_item_names())
 
 class RavenItemCommands(commands.Component):
-    def __init__(self, bot: commands.Bot, rf_api: ravenpy.Ravenfall):
+    def __init__(self, bot: commands.Bot, rf_api: ravenpy.RavenNest):
         self.bot = bot
         self.rf_api = rf_api
 

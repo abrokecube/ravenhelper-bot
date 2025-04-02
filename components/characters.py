@@ -94,7 +94,7 @@ def get_char_identifier(char: ravenpy.Character):
     
 
 class RavenCharacterCommands(commands.Component):
-    def __init__(self, bot: commands.Bot, rf_api: ravenpy.Ravenfall):
+    def __init__(self, bot: commands.Bot, rf_api: ravenpy.RavenNest):
         self.bot = bot
         self.rf_api = rf_api
 

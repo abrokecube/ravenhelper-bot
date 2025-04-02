@@ -6,7 +6,7 @@ from utils.utils import format_timedelta, TimeSize, is_bot_owner
 import time
 
 class RavenInfo(commands.Component):
-    def __init__(self, bot: commands.Bot, rf_api: ravenpy.Ravenfall):
+    def __init__(self, bot: commands.Bot, rf_api: ravenpy.RavenNest):
         self.bot = bot
         self.rf_api = rf_api
 

@@ -20,7 +20,7 @@ def match_identifier(chars: List[ravenpy.Character], target: str):
     return None
 
 @alru_cache(ttl=3)
-async def _get_characters(bot: commands.Bot, rfapi: ravenpy.Ravenfall, *, user_id: str=None, user_name=None):
+async def _get_characters(bot: commands.Bot, rfapi: ravenpy.RavenNest, *, user_id: str=None, user_name=None):
     uid = user_id
     if uid is None:
         if user_name:
@@ -50,7 +50,7 @@ class CharSearchResult:
         self.characters = char_tuple
         self.leftover_args = leftover.split()
 
-async def get_user_characters(rfapi: ravenpy.Ravenfall, ctx: commands.Context, user: str=''):
+async def get_user_characters(rfapi: ravenpy.RavenNest, ctx: commands.Context, user: str=''):
     if user and not is_twitch_username(user):
         await ctx.reply(f"uuh {user} is not a valid username.")
         return None
@@ -77,7 +77,7 @@ async def get_user_characters(rfapi: ravenpy.Ravenfall, ctx: commands.Context, u
 
 
 async def search_user_characters(
-    rfapi: ravenpy.Ravenfall,
+    rfapi: ravenpy.RavenNest,
     ctx: commands.Context,
     *args: str,
     single_char_only=False,

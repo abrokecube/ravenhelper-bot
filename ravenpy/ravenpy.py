@@ -481,7 +481,7 @@ class ExpMult:
 
 class MarketplaceItem:
     def __init__(self, **kwargs):
-        self._rf_api: Ravenfall = kwargs.get('rfapi')
+        self._rf_api: RavenNest = kwargs.get('rfapi')
         self.seller_char_id = kwargs.get('sellerCharacterId')
         self._seller_user_id = kwargs.get('sellerUserId')
         self.item: Item = _items_id_data[kwargs.get('itemId')]
@@ -495,7 +495,7 @@ class MarketplaceItem:
         result = self._rf_api._get_character(self.seller_char_id)
         return Character(result)
 
-class Ravenfall:
+class RavenNest:
     def __init__(self, username: str, password: str):
         self._user = username
         self._pass = password
