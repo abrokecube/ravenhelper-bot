@@ -98,7 +98,7 @@ class RavenCharacterCommands(commands.Component):
         self.bot = bot
         self.rf_api = rf_api
 
-    @commands.command(aliases=('char',))
+    @commands.command(aliases=('char','chars','characters'))
     async def character(self, ctx: commands.Context, *args: str):
         """Get information about a user's characters. 
         Supply a character name, a user name, or both (in that order) to get more 
@@ -472,6 +472,66 @@ class RavenCharacterCommands(commands.Component):
         user_name = user_chars[0].user_name
                     
         char_trainings = [f"{get_char_identifier(x)} is training {x.training.name}" for x in user_chars]
+        await ctx.reply(
+            f"{user_name} ✦ {utils.strjoin(' – ', *char_trainings)}",
+            me=True
+        )
+
+
+    @commands.command(aliases=('island',))
+    async def where(self, ctx: commands.Context, user: str = ''):
+        """Get a user's current location. 
+        
+        Args:
+            user (str, optional): Twitch username.
+        """
+        user_chars = await charutils.get_user_characters(self.rf_api, ctx, user)
+        if user_chars is None:
+            return
+        user_name = user_chars[0].user_name
+        
+        char_trainings = []
+        
+        for char in user_chars:
+            what = ""                
+            if char.in_onsen:
+                what = "resting"
+
+            where = ""
+            if char.in_raid:
+                where = "in a raid"
+            if char.in_arena:
+                where = "in the arena"
+            if char.in_dungeon:
+                where = "in a dungeon"
+            if char.in_onsen:
+                where = "in the onsen"
+                
+            entering_dungeon = ""
+            if char.has_joined_dungeon and not char.in_dungeon:
+                entering_dungeon = "entering the dungeon"
+
+            where_island = ""
+            if char.island:
+                where_island = f"at {char.island.name.capitalize()}"
+            elif char.destination == Islands.Ferry:
+                where_island = f"on the ferry"
+            else:
+                where_island = "sailing the seas"
+
+            captain = ""
+            if char.is_captain:
+                captain = "as the ship captain"
+
+            destination = ""
+            if char.waiting_for_ferry:
+                destination = f"waiting for the ferry"
+
+            summary = utils.strjoin(
+                " ", get_char_identifier(char), "is", what, where, entering_dungeon, where_island, captain, destination
+            )
+            char_trainings.append(summary)
+            
         await ctx.reply(
             f"{user_name} ✦ {utils.strjoin(' – ', *char_trainings)}",
             me=True

@@ -166,7 +166,7 @@ class RavenTextCommands(commands.Component):
     async def skills(self, ctx: commands.Context):
         await ctx.reply("/me Skills you can train: Woodcutting, Farming, Crafting, Cooking, Fishing, Alchemy, Gathering, Mining, Health, Attack, Defense, Strength, Magic, Ranged, Healing and Sailing")
 
-    @commands.command(name="islands", aliases=("island", "destination", "destinations"))
+    @commands.command(name="islands", aliases=("destination", "destinations"))
     async def islands(self, ctx: commands.Context):
         await ctx.reply("/me 🏝️ Destinations: Home - 1-99 • Away - 50-150 • Ironhill - 100-300 • " \
                         "Kyo - 200-400 • Heim - 300-700 • Atria - 500-900 • Eldara - 700+")
