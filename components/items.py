@@ -336,7 +336,7 @@ class RavenItemCommands(commands.Component):
         await ctx.reply(f"{item.name} can be vendored for {item.sell_price} coins.", me=True)
 
     @is_bot_owner()
-    @commands.command()
+    @commands.command(aliases=("reloaditems","refreshitems"))
     async def fetchitems(self, ctx: commands.Context):
         """Refreshes the internal item database."""
         await ctx.reply(f"Fetching items...", me=True)
