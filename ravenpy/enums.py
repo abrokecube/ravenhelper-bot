@@ -186,3 +186,14 @@ class ClanRole(Enum):
     Recruit = 1
     Member = 2
     Officer = 3
+
+class PlayerTask(Enum):
+    Woodcutting = 0
+    Fishing = 1
+    Mining = 2
+    Crafting = 3
+    Cooking = 4
+    Farming = 5
+    Gathering = 6
+    Brewing = 7
+    Fighting = 8
