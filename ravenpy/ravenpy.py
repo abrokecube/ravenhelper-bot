@@ -506,6 +506,8 @@ class RavenNest:
         await self._authenticate()
         if self._auth and not _items:
             await self.refresh_items()
+        else:
+            _load_local_item_data()
     
     async def refresh_items(self):
         item_data = await _fetch_raw_item_data(self)
@@ -642,9 +644,10 @@ def _load_item_data(item_list):
         for uitem in item._used_in:
             item.used_in.append(_items_id_data[uitem])
 
-with open(os.path.join(_dirname, 'data/items.json'), 'r') as f:
-    _a = json.load(f)
-    _load_item_data(_a)
+def _load_local_item_data():
+    with open(os.path.join(_dirname, 'data/items.json'), 'r') as f:
+        _a = json.load(f)
+        _load_item_data(_a)
 
 equipment_levels = {
     ItemMaterials.Iron: 1,
