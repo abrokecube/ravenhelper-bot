@@ -2,10 +2,12 @@ import thefuzz.fuzz
 import thefuzz.process
 import twitchio
 from twitchio.ext import commands
+from twitchio.ext import routines
 import ravenpy
 from ravenpy import ItemTypes, Skills
 from cachetools import TTLCache, cached
 from utils.utils import is_bot_owner
+from datetime import timedelta
 import random
 import thefuzz
 from utils.utils import strjoin, strenclose, strextend, strjoin_len, format_seconds, \
@@ -61,6 +63,7 @@ class RavenItemCommands(commands.Component):
     def __init__(self, bot: commands.Bot, rf_api: ravenpy.RavenNest):
         self.bot = bot
         self.rf_api = rf_api
+        self.refresh_items_task.start()
 
     @commands.command(aliases=("woodcuttingitems","chop"))
     async def wood(self, ctx: commands.Context):
@@ -351,3 +354,7 @@ class RavenItemCommands(commands.Component):
         asdfasdf = split_arguments(args, SplitWildcard(1), SplitQuery(username_split), get_split_query(), SplitWildcard(1))
         print(asdfasdf)
         ...
+    
+    @routines.routine(delta=timedelta(hours=2), wait_first=True)
+    async def refresh_items_task(self):
+        await self.rf_api.refresh_items()
