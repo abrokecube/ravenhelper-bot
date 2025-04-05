@@ -10035,7 +10035,7 @@
     "equip_requirements": [
       {
         "skill": 0,
-        "level": 800
+        "level": 825
       }
     ],
     "type": 3,
@@ -10090,7 +10090,7 @@
     "equip_requirements": [
       {
         "skill": 0,
-        "level": 800
+        "level": 825
       }
     ],
     "type": 1,
@@ -10145,7 +10145,7 @@
     "equip_requirements": [
       {
         "skill": 0,
-        "level": 800
+        "level": 825
       }
     ],
     "type": 4,
@@ -10260,7 +10260,7 @@
     "equip_requirements": [
       {
         "skill": 1,
-        "level": 800
+        "level": 825
       }
     ],
     "type": 11,
@@ -10315,7 +10315,7 @@
     "equip_requirements": [
       {
         "skill": 12,
-        "level": 800
+        "level": 825
       }
     ],
     "type": 6,
@@ -10370,7 +10370,7 @@
     "equip_requirements": [
       {
         "skill": 1,
-        "level": 800
+        "level": 825
       }
     ],
     "type": 9,
@@ -10421,7 +10421,7 @@
     "equip_requirements": [
       {
         "skill": 1,
-        "level": 800
+        "level": 825
       }
     ],
     "type": 10,
@@ -10472,7 +10472,7 @@
     "equip_requirements": [
       {
         "skill": 1,
-        "level": 800
+        "level": 825
       }
     ],
     "type": 8,
@@ -10527,7 +10527,7 @@
     "equip_requirements": [
       {
         "skill": 0,
-        "level": 800
+        "level": 825
       }
     ],
     "type": 1,
@@ -10578,7 +10578,7 @@
     "equip_requirements": [
       {
         "skill": 1,
-        "level": 800
+        "level": 825
       }
     ],
     "type": 12,
@@ -10629,7 +10629,7 @@
     "equip_requirements": [
       {
         "skill": 1,
-        "level": 800
+        "level": 825
       }
     ],
     "type": 13,
@@ -10684,7 +10684,7 @@
     "equip_requirements": [
       {
         "skill": 0,
-        "level": 800
+        "level": 825
       }
     ],
     "type": 7,
@@ -10743,7 +10743,7 @@
     "equip_requirements": [
       {
         "skill": 11,
-        "level": 800
+        "level": 825
       }
     ],
     "type": 5,
@@ -10802,7 +10802,7 @@
     "equip_requirements": [
       {
         "skill": 0,
-        "level": 800
+        "level": 825
       }
     ],
     "type": 2,
@@ -10857,7 +10857,7 @@
     "equip_requirements": [
       {
         "skill": 0,
-        "level": 650
+        "level": 700
       }
     ],
     "type": 3,
@@ -10912,7 +10912,7 @@
     "equip_requirements": [
       {
         "skill": 0,
-        "level": 650
+        "level": 700
       }
     ],
     "type": 1,
@@ -10967,7 +10967,7 @@
     "equip_requirements": [
       {
         "skill": 0,
-        "level": 650
+        "level": 700
       }
     ],
     "type": 4,
@@ -11082,7 +11082,7 @@
     "equip_requirements": [
       {
         "skill": 1,
-        "level": 650
+        "level": 700
       }
     ],
     "type": 11,
@@ -11137,7 +11137,7 @@
     "equip_requirements": [
       {
         "skill": 12,
-        "level": 650
+        "level": 700
       }
     ],
     "type": 6,
@@ -11192,7 +11192,7 @@
     "equip_requirements": [
       {
         "skill": 1,
-        "level": 650
+        "level": 700
       }
     ],
     "type": 9,
@@ -11243,7 +11243,7 @@
     "equip_requirements": [
       {
         "skill": 1,
-        "level": 650
+        "level": 700
       }
     ],
     "type": 10,
@@ -11294,7 +11294,7 @@
     "equip_requirements": [
       {
         "skill": 1,
-        "level": 650
+        "level": 700
       }
     ],
     "type": 8,
@@ -11349,7 +11349,7 @@
     "equip_requirements": [
       {
         "skill": 0,
-        "level": 650
+        "level": 700
       }
     ],
     "type": 1,
@@ -11400,7 +11400,7 @@
     "equip_requirements": [
       {
         "skill": 1,
-        "level": 650
+        "level": 700
       }
     ],
     "type": 12,
@@ -11451,7 +11451,7 @@
     "equip_requirements": [
       {
         "skill": 1,
-        "level": 650
+        "level": 700
       }
     ],
     "type": 13,
@@ -11506,7 +11506,7 @@
     "equip_requirements": [
       {
         "skill": 0,
-        "level": 650
+        "level": 700
       }
     ],
     "type": 7,
@@ -11565,7 +11565,7 @@
     "equip_requirements": [
       {
         "skill": 11,
-        "level": 650
+        "level": 700
       }
     ],
     "type": 5,
@@ -11624,7 +11624,7 @@
     "equip_requirements": [
       {
         "skill": 0,
-        "level": 650
+        "level": 700
       }
     ],
     "type": 2,
@@ -13306,6 +13306,682 @@
     "drop_slayer_requirement": 0
   },
   {
+    "id": "af03a73f-8f22-4607-a4c8-a15119cb1b63",
+    "name": "Elder Black 2H Axe",
+    "description": null,
+    "stats": [
+      {
+        "stat": 0,
+        "level": 411
+      },
+      {
+        "stat": 1,
+        "level": 514
+      }
+    ],
+    "level": 1,
+    "equip_requirements": [
+      {
+        "skill": 0,
+        "level": 600
+      }
+    ],
+    "type": 3,
+    "category": 0,
+    "material": 18,
+    "sell_price": 3400,
+    "buy_price": 0,
+    "enchantments": 1,
+    "soulbound": false,
+    "modified": null,
+    "craft_skill": null,
+    "craft_level": 0,
+    "min_success_rate": 0,
+    "max_success_rate": 0,
+    "preperation_time": 0,
+    "is_fixed_success_rate": true,
+    "craft_fail_item": null,
+    "craft_ingredients": [],
+    "drop_skill": null,
+    "drop_level": 0,
+    "drop_chance": 0,
+    "drop_cooldown": 0,
+    "used_in": [],
+    "effects": [],
+    "raid_drop_month_start": 0,
+    "raid_drop_month_length": 0,
+    "raid_min_drop": 0,
+    "raid_max_drop": 0,
+    "raid_drop_tier": 0,
+    "drop_slayer_requirement": 0
+  },
+  {
+    "id": "47cc1664-5c49-4201-a09a-2505c54e12e0",
+    "name": "Elder Black 2H Sword",
+    "description": null,
+    "stats": [
+      {
+        "stat": 0,
+        "level": 468
+      },
+      {
+        "stat": 1,
+        "level": 468
+      }
+    ],
+    "level": 1,
+    "equip_requirements": [
+      {
+        "skill": 0,
+        "level": 600
+      }
+    ],
+    "type": 1,
+    "category": 0,
+    "material": 18,
+    "sell_price": 3400,
+    "buy_price": 0,
+    "enchantments": 1,
+    "soulbound": false,
+    "modified": null,
+    "craft_skill": null,
+    "craft_level": 0,
+    "min_success_rate": 0,
+    "max_success_rate": 0,
+    "preperation_time": 0,
+    "is_fixed_success_rate": true,
+    "craft_fail_item": null,
+    "craft_ingredients": [],
+    "drop_skill": null,
+    "drop_level": 0,
+    "drop_chance": 0,
+    "drop_cooldown": 0,
+    "used_in": [],
+    "effects": [],
+    "raid_drop_month_start": 0,
+    "raid_drop_month_length": 0,
+    "raid_min_drop": 0,
+    "raid_max_drop": 0,
+    "raid_drop_tier": 0,
+    "drop_slayer_requirement": 0
+  },
+  {
+    "id": "5ebcb3b6-5abc-405a-a669-902509eb9532",
+    "name": "Elder Black Axe",
+    "description": null,
+    "stats": [
+      {
+        "stat": 0,
+        "level": 309
+      },
+      {
+        "stat": 1,
+        "level": 349
+      }
+    ],
+    "level": 1,
+    "equip_requirements": [
+      {
+        "skill": 0,
+        "level": 600
+      }
+    ],
+    "type": 4,
+    "category": 0,
+    "material": 18,
+    "sell_price": 3400,
+    "buy_price": 0,
+    "enchantments": 1,
+    "soulbound": false,
+    "modified": null,
+    "craft_skill": null,
+    "craft_level": 0,
+    "min_success_rate": 0,
+    "max_success_rate": 0,
+    "preperation_time": 0,
+    "is_fixed_success_rate": true,
+    "craft_fail_item": null,
+    "craft_ingredients": [],
+    "drop_skill": null,
+    "drop_level": 0,
+    "drop_chance": 0,
+    "drop_cooldown": 0,
+    "used_in": [],
+    "effects": [],
+    "raid_drop_month_start": 0,
+    "raid_drop_month_length": 0,
+    "raid_min_drop": 0,
+    "raid_max_drop": 0,
+    "raid_drop_tier": 0,
+    "drop_slayer_requirement": 0
+  },
+  {
+    "id": "ba6ce6a9-1e45-4b73-bcc0-171cf5052b3c",
+    "name": "Elder Black Boots",
+    "description": null,
+    "stats": [
+      {
+        "stat": 6,
+        "level": 199
+      }
+    ],
+    "level": 1,
+    "equip_requirements": [
+      {
+        "skill": 1,
+        "level": 600
+      }
+    ],
+    "type": 11,
+    "category": 1,
+    "material": 18,
+    "sell_price": 3400,
+    "buy_price": 0,
+    "enchantments": 1,
+    "soulbound": false,
+    "modified": null,
+    "craft_skill": null,
+    "craft_level": 0,
+    "min_success_rate": 0,
+    "max_success_rate": 0,
+    "preperation_time": 0,
+    "is_fixed_success_rate": true,
+    "craft_fail_item": null,
+    "craft_ingredients": [],
+    "drop_skill": null,
+    "drop_level": 0,
+    "drop_chance": 0,
+    "drop_cooldown": 0,
+    "used_in": [],
+    "effects": [],
+    "raid_drop_month_start": 0,
+    "raid_drop_month_length": 0,
+    "raid_min_drop": 0,
+    "raid_max_drop": 0,
+    "raid_drop_tier": 0,
+    "drop_slayer_requirement": 0
+  },
+  {
+    "id": "f3811e3e-aee4-4676-9148-e8adf8aa357d",
+    "name": "Elder Black Bow",
+    "description": null,
+    "stats": [
+      {
+        "stat": 4,
+        "level": 468
+      },
+      {
+        "stat": 5,
+        "level": 468
+      }
+    ],
+    "level": 1,
+    "equip_requirements": [
+      {
+        "skill": 12,
+        "level": 600
+      }
+    ],
+    "type": 6,
+    "category": 0,
+    "material": 18,
+    "sell_price": 3400,
+    "buy_price": 0,
+    "enchantments": 1,
+    "soulbound": false,
+    "modified": null,
+    "craft_skill": null,
+    "craft_level": 0,
+    "min_success_rate": 0,
+    "max_success_rate": 0,
+    "preperation_time": 0,
+    "is_fixed_success_rate": true,
+    "craft_fail_item": null,
+    "craft_ingredients": [],
+    "drop_skill": null,
+    "drop_level": 0,
+    "drop_chance": 0,
+    "drop_cooldown": 0,
+    "used_in": [],
+    "effects": [],
+    "raid_drop_month_start": 0,
+    "raid_drop_month_length": 0,
+    "raid_min_drop": 0,
+    "raid_max_drop": 0,
+    "raid_drop_tier": 0,
+    "drop_slayer_requirement": 0
+  },
+  {
+    "id": "2a4bf3f7-9909-443b-9a3c-e08a94ac8a8e",
+    "name": "Elder Black Chest",
+    "description": null,
+    "stats": [
+      {
+        "stat": 6,
+        "level": 312
+      }
+    ],
+    "level": 1,
+    "equip_requirements": [
+      {
+        "skill": 1,
+        "level": 600
+      }
+    ],
+    "type": 9,
+    "category": 1,
+    "material": 18,
+    "sell_price": 3400,
+    "buy_price": 0,
+    "enchantments": 1,
+    "soulbound": false,
+    "modified": null,
+    "craft_skill": null,
+    "craft_level": 0,
+    "min_success_rate": 0,
+    "max_success_rate": 0,
+    "preperation_time": 0,
+    "is_fixed_success_rate": true,
+    "craft_fail_item": null,
+    "craft_ingredients": [],
+    "drop_skill": null,
+    "drop_level": 0,
+    "drop_chance": 0,
+    "drop_cooldown": 0,
+    "used_in": [],
+    "effects": [],
+    "raid_drop_month_start": 0,
+    "raid_drop_month_length": 0,
+    "raid_min_drop": 0,
+    "raid_max_drop": 0,
+    "raid_drop_tier": 0,
+    "drop_slayer_requirement": 0
+  },
+  {
+    "id": "4ddcbb89-44e6-47db-8ba6-9484a4ce2e1b",
+    "name": "Elder Black Gloves",
+    "description": null,
+    "stats": [
+      {
+        "stat": 6,
+        "level": 225
+      }
+    ],
+    "level": 1,
+    "equip_requirements": [
+      {
+        "skill": 1,
+        "level": 600
+      }
+    ],
+    "type": 10,
+    "category": 1,
+    "material": 18,
+    "sell_price": 3400,
+    "buy_price": 0,
+    "enchantments": 1,
+    "soulbound": false,
+    "modified": null,
+    "craft_skill": null,
+    "craft_level": 0,
+    "min_success_rate": 0,
+    "max_success_rate": 0,
+    "preperation_time": 0,
+    "is_fixed_success_rate": true,
+    "craft_fail_item": null,
+    "craft_ingredients": [],
+    "drop_skill": null,
+    "drop_level": 0,
+    "drop_chance": 0,
+    "drop_cooldown": 0,
+    "used_in": [],
+    "effects": [],
+    "raid_drop_month_start": 0,
+    "raid_drop_month_length": 0,
+    "raid_min_drop": 0,
+    "raid_max_drop": 0,
+    "raid_drop_tier": 0,
+    "drop_slayer_requirement": 0
+  },
+  {
+    "id": "b24e6056-25b9-49bc-8e47-48640195cfbf",
+    "name": "Elder Black Helmet",
+    "description": null,
+    "stats": [
+      {
+        "stat": 6,
+        "level": 285
+      }
+    ],
+    "level": 1,
+    "equip_requirements": [
+      {
+        "skill": 1,
+        "level": 600
+      }
+    ],
+    "type": 8,
+    "category": 1,
+    "material": 18,
+    "sell_price": 3400,
+    "buy_price": 0,
+    "enchantments": 1,
+    "soulbound": false,
+    "modified": null,
+    "craft_skill": null,
+    "craft_level": 0,
+    "min_success_rate": 0,
+    "max_success_rate": 0,
+    "preperation_time": 0,
+    "is_fixed_success_rate": true,
+    "craft_fail_item": null,
+    "craft_ingredients": [],
+    "drop_skill": null,
+    "drop_level": 0,
+    "drop_chance": 0,
+    "drop_cooldown": 0,
+    "used_in": [],
+    "effects": [],
+    "raid_drop_month_start": 0,
+    "raid_drop_month_length": 0,
+    "raid_min_drop": 0,
+    "raid_max_drop": 0,
+    "raid_drop_tier": 0,
+    "drop_slayer_requirement": 0
+  },
+  {
+    "id": "c8286333-a386-40b8-a9df-fd225ca45c75",
+    "name": "Elder Black Katana",
+    "description": null,
+    "stats": [
+      {
+        "stat": 0,
+        "level": 432
+      },
+      {
+        "stat": 1,
+        "level": 502
+      }
+    ],
+    "level": 1,
+    "equip_requirements": [
+      {
+        "skill": 0,
+        "level": 600
+      }
+    ],
+    "type": 1,
+    "category": 0,
+    "material": 18,
+    "sell_price": 3400,
+    "buy_price": 0,
+    "enchantments": 1,
+    "soulbound": false,
+    "modified": null,
+    "craft_skill": null,
+    "craft_level": 0,
+    "min_success_rate": 0,
+    "max_success_rate": 0,
+    "preperation_time": 0,
+    "is_fixed_success_rate": true,
+    "craft_fail_item": null,
+    "craft_ingredients": [],
+    "drop_skill": null,
+    "drop_level": 0,
+    "drop_chance": 0,
+    "drop_cooldown": 0,
+    "used_in": [],
+    "effects": [],
+    "raid_drop_month_start": 0,
+    "raid_drop_month_length": 0,
+    "raid_min_drop": 0,
+    "raid_max_drop": 0,
+    "raid_drop_tier": 0,
+    "drop_slayer_requirement": 0
+  },
+  {
+    "id": "a950696f-9d05-4983-a3b0-232d528a3b48",
+    "name": "Elder Black Leggings",
+    "description": null,
+    "stats": [
+      {
+        "stat": 6,
+        "level": 271
+      }
+    ],
+    "level": 1,
+    "equip_requirements": [
+      {
+        "skill": 1,
+        "level": 600
+      }
+    ],
+    "type": 12,
+    "category": 1,
+    "material": 18,
+    "sell_price": 3400,
+    "buy_price": 0,
+    "enchantments": 1,
+    "soulbound": false,
+    "modified": null,
+    "craft_skill": null,
+    "craft_level": 0,
+    "min_success_rate": 0,
+    "max_success_rate": 0,
+    "preperation_time": 0,
+    "is_fixed_success_rate": true,
+    "craft_fail_item": null,
+    "craft_ingredients": [],
+    "drop_skill": null,
+    "drop_level": 0,
+    "drop_chance": 0,
+    "drop_cooldown": 0,
+    "used_in": [],
+    "effects": [],
+    "raid_drop_month_start": 0,
+    "raid_drop_month_length": 0,
+    "raid_min_drop": 0,
+    "raid_max_drop": 0,
+    "raid_drop_tier": 0,
+    "drop_slayer_requirement": 0
+  },
+  {
+    "id": "13056c97-e5d3-452a-9772-ca6643d98594",
+    "name": "Elder Black Shield",
+    "description": null,
+    "stats": [
+      {
+        "stat": 6,
+        "level": 271
+      }
+    ],
+    "level": 1,
+    "equip_requirements": [
+      {
+        "skill": 1,
+        "level": 600
+      }
+    ],
+    "type": 13,
+    "category": 1,
+    "material": 18,
+    "sell_price": 3400,
+    "buy_price": 0,
+    "enchantments": 1,
+    "soulbound": false,
+    "modified": null,
+    "craft_skill": null,
+    "craft_level": 0,
+    "min_success_rate": 0,
+    "max_success_rate": 0,
+    "preperation_time": 0,
+    "is_fixed_success_rate": true,
+    "craft_fail_item": null,
+    "craft_ingredients": [],
+    "drop_skill": null,
+    "drop_level": 0,
+    "drop_chance": 0,
+    "drop_cooldown": 0,
+    "used_in": [],
+    "effects": [],
+    "raid_drop_month_start": 0,
+    "raid_drop_month_length": 0,
+    "raid_min_drop": 0,
+    "raid_max_drop": 0,
+    "raid_drop_tier": 0,
+    "drop_slayer_requirement": 0
+  },
+  {
+    "id": "a1adef23-6f0a-4835-8315-f1c98211d138",
+    "name": "Elder Black Spear",
+    "description": null,
+    "stats": [
+      {
+        "stat": 0,
+        "level": 444
+      },
+      {
+        "stat": 1,
+        "level": 486
+      }
+    ],
+    "level": 1,
+    "equip_requirements": [
+      {
+        "skill": 0,
+        "level": 600
+      }
+    ],
+    "type": 7,
+    "category": 0,
+    "material": 18,
+    "sell_price": 3400,
+    "buy_price": 0,
+    "enchantments": 1,
+    "soulbound": false,
+    "modified": null,
+    "craft_skill": null,
+    "craft_level": 0,
+    "min_success_rate": 0,
+    "max_success_rate": 0,
+    "preperation_time": 0,
+    "is_fixed_success_rate": true,
+    "craft_fail_item": null,
+    "craft_ingredients": [],
+    "drop_skill": null,
+    "drop_level": 0,
+    "drop_chance": 0,
+    "drop_cooldown": 0,
+    "used_in": [],
+    "effects": [],
+    "raid_drop_month_start": 0,
+    "raid_drop_month_length": 0,
+    "raid_min_drop": 0,
+    "raid_max_drop": 0,
+    "raid_drop_tier": 0,
+    "drop_slayer_requirement": 0
+  },
+  {
+    "id": "07c2ad29-1000-4f7b-929c-2a50e7da70fd",
+    "name": "Elder Black Staff",
+    "description": null,
+    "stats": [
+      {
+        "stat": 2,
+        "level": 468
+      },
+      {
+        "stat": 3,
+        "level": 468
+      }
+    ],
+    "level": 1,
+    "equip_requirements": [
+      {
+        "skill": 11,
+        "level": 600
+      }
+    ],
+    "type": 5,
+    "category": 0,
+    "material": 18,
+    "sell_price": 3400,
+    "buy_price": 0,
+    "enchantments": 1,
+    "soulbound": false,
+    "modified": null,
+    "craft_skill": null,
+    "craft_level": 0,
+    "min_success_rate": 0,
+    "max_success_rate": 0,
+    "preperation_time": 0,
+    "is_fixed_success_rate": true,
+    "craft_fail_item": null,
+    "craft_ingredients": [],
+    "drop_skill": null,
+    "drop_level": 0,
+    "drop_chance": 0,
+    "drop_cooldown": 0,
+    "used_in": [],
+    "effects": [],
+    "raid_drop_month_start": 0,
+    "raid_drop_month_length": 0,
+    "raid_min_drop": 0,
+    "raid_max_drop": 0,
+    "raid_drop_tier": 0,
+    "drop_slayer_requirement": 0
+  },
+  {
+    "id": "365cee96-eec2-4b49-9b87-e9228d1f2bb4",
+    "name": "Elder Black Sword",
+    "description": null,
+    "stats": [
+      {
+        "stat": 0,
+        "level": 330
+      },
+      {
+        "stat": 1,
+        "level": 330
+      }
+    ],
+    "level": 1,
+    "equip_requirements": [
+      {
+        "skill": 0,
+        "level": 600
+      }
+    ],
+    "type": 2,
+    "category": 0,
+    "material": 18,
+    "sell_price": 3400,
+    "buy_price": 0,
+    "enchantments": 1,
+    "soulbound": false,
+    "modified": null,
+    "craft_skill": null,
+    "craft_level": 0,
+    "min_success_rate": 0,
+    "max_success_rate": 0,
+    "preperation_time": 0,
+    "is_fixed_success_rate": true,
+    "craft_fail_item": null,
+    "craft_ingredients": [],
+    "drop_skill": null,
+    "drop_level": 0,
+    "drop_chance": 0,
+    "drop_cooldown": 0,
+    "used_in": [],
+    "effects": [],
+    "raid_drop_month_start": 0,
+    "raid_drop_month_length": 0,
+    "raid_min_drop": 0,
+    "raid_max_drop": 0,
+    "raid_drop_tier": 0,
+    "drop_slayer_requirement": 0
+  },
+  {
     "id": "20d4386f-d5bd-438f-b9de-e2359990b664",
     "name": "Elder Bronze 2H Axe",
     "description": null,
@@ -14145,7 +14821,7 @@
     "equip_requirements": [
       {
         "skill": 0,
-        "level": 750
+        "level": 800
       }
     ],
     "type": 3,
@@ -14200,7 +14876,7 @@
     "equip_requirements": [
       {
         "skill": 0,
-        "level": 750
+        "level": 800
       }
     ],
     "type": 1,
@@ -14255,7 +14931,7 @@
     "equip_requirements": [
       {
         "skill": 0,
-        "level": 750
+        "level": 800
       }
     ],
     "type": 4,
@@ -14370,7 +15046,7 @@
     "equip_requirements": [
       {
         "skill": 1,
-        "level": 750
+        "level": 800
       }
     ],
     "type": 11,
@@ -14425,7 +15101,7 @@
     "equip_requirements": [
       {
         "skill": 12,
-        "level": 750
+        "level": 800
       }
     ],
     "type": 6,
@@ -14480,7 +15156,7 @@
     "equip_requirements": [
       {
         "skill": 1,
-        "level": 750
+        "level": 800
       }
     ],
     "type": 9,
@@ -14531,7 +15207,7 @@
     "equip_requirements": [
       {
         "skill": 1,
-        "level": 750
+        "level": 800
       }
     ],
     "type": 10,
@@ -14582,7 +15258,7 @@
     "equip_requirements": [
       {
         "skill": 1,
-        "level": 750
+        "level": 800
       }
     ],
     "type": 8,
@@ -14637,7 +15313,7 @@
     "equip_requirements": [
       {
         "skill": 0,
-        "level": 750
+        "level": 800
       }
     ],
     "type": 1,
@@ -14688,7 +15364,7 @@
     "equip_requirements": [
       {
         "skill": 1,
-        "level": 750
+        "level": 800
       }
     ],
     "type": 12,
@@ -14739,7 +15415,7 @@
     "equip_requirements": [
       {
         "skill": 1,
-        "level": 750
+        "level": 800
       }
     ],
     "type": 13,
@@ -14794,7 +15470,7 @@
     "equip_requirements": [
       {
         "skill": 0,
-        "level": 750
+        "level": 800
       }
     ],
     "type": 7,
@@ -14853,7 +15529,7 @@
     "equip_requirements": [
       {
         "skill": 11,
-        "level": 750
+        "level": 800
       }
     ],
     "type": 5,
@@ -14912,7 +15588,7 @@
     "equip_requirements": [
       {
         "skill": 0,
-        "level": 750
+        "level": 800
       }
     ],
     "type": 2,
@@ -17433,7 +18109,7 @@
     "equip_requirements": [
       {
         "skill": 0,
-        "level": 600
+        "level": 650
       }
     ],
     "type": 3,
@@ -17488,7 +18164,7 @@
     "equip_requirements": [
       {
         "skill": 0,
-        "level": 600
+        "level": 650
       }
     ],
     "type": 1,
@@ -17543,7 +18219,7 @@
     "equip_requirements": [
       {
         "skill": 0,
-        "level": 600
+        "level": 650
       }
     ],
     "type": 4,
@@ -17658,7 +18334,7 @@
     "equip_requirements": [
       {
         "skill": 1,
-        "level": 600
+        "level": 650
       }
     ],
     "type": 11,
@@ -17713,7 +18389,7 @@
     "equip_requirements": [
       {
         "skill": 12,
-        "level": 600
+        "level": 650
       }
     ],
     "type": 6,
@@ -17768,7 +18444,7 @@
     "equip_requirements": [
       {
         "skill": 1,
-        "level": 600
+        "level": 650
       }
     ],
     "type": 9,
@@ -17819,7 +18495,7 @@
     "equip_requirements": [
       {
         "skill": 1,
-        "level": 600
+        "level": 650
       }
     ],
     "type": 10,
@@ -17870,7 +18546,7 @@
     "equip_requirements": [
       {
         "skill": 1,
-        "level": 600
+        "level": 650
       }
     ],
     "type": 8,
@@ -17925,7 +18601,7 @@
     "equip_requirements": [
       {
         "skill": 0,
-        "level": 600
+        "level": 650
       }
     ],
     "type": 1,
@@ -17976,7 +18652,7 @@
     "equip_requirements": [
       {
         "skill": 1,
-        "level": 600
+        "level": 650
       }
     ],
     "type": 12,
@@ -18027,7 +18703,7 @@
     "equip_requirements": [
       {
         "skill": 1,
-        "level": 600
+        "level": 650
       }
     ],
     "type": 13,
@@ -18082,7 +18758,7 @@
     "equip_requirements": [
       {
         "skill": 0,
-        "level": 600
+        "level": 650
       }
     ],
     "type": 7,
@@ -18141,7 +18817,7 @@
     "equip_requirements": [
       {
         "skill": 11,
-        "level": 600
+        "level": 650
       }
     ],
     "type": 5,
@@ -18200,7 +18876,7 @@
     "equip_requirements": [
       {
         "skill": 0,
-        "level": 600
+        "level": 650
       }
     ],
     "type": 2,
@@ -19077,7 +19753,7 @@
     "equip_requirements": [
       {
         "skill": 0,
-        "level": 700
+        "level": 750
       }
     ],
     "type": 3,
@@ -19132,7 +19808,7 @@
     "equip_requirements": [
       {
         "skill": 0,
-        "level": 700
+        "level": 750
       }
     ],
     "type": 1,
@@ -19187,7 +19863,7 @@
     "equip_requirements": [
       {
         "skill": 0,
-        "level": 700
+        "level": 750
       }
     ],
     "type": 4,
@@ -19302,7 +19978,7 @@
     "equip_requirements": [
       {
         "skill": 1,
-        "level": 700
+        "level": 750
       }
     ],
     "type": 11,
@@ -19357,7 +20033,7 @@
     "equip_requirements": [
       {
         "skill": 12,
-        "level": 700
+        "level": 750
       }
     ],
     "type": 6,
@@ -19412,7 +20088,7 @@
     "equip_requirements": [
       {
         "skill": 1,
-        "level": 700
+        "level": 750
       }
     ],
     "type": 9,
@@ -19463,7 +20139,7 @@
     "equip_requirements": [
       {
         "skill": 1,
-        "level": 700
+        "level": 750
       }
     ],
     "type": 10,
@@ -19514,7 +20190,7 @@
     "equip_requirements": [
       {
         "skill": 1,
-        "level": 700
+        "level": 750
       }
     ],
     "type": 8,
@@ -19569,7 +20245,7 @@
     "equip_requirements": [
       {
         "skill": 0,
-        "level": 700
+        "level": 750
       }
     ],
     "type": 1,
@@ -19620,7 +20296,7 @@
     "equip_requirements": [
       {
         "skill": 1,
-        "level": 700
+        "level": 750
       }
     ],
     "type": 12,
@@ -19671,7 +20347,7 @@
     "equip_requirements": [
       {
         "skill": 1,
-        "level": 700
+        "level": 750
       }
     ],
     "type": 13,
@@ -19726,7 +20402,7 @@
     "equip_requirements": [
       {
         "skill": 0,
-        "level": 700
+        "level": 750
       }
     ],
     "type": 7,
@@ -19785,7 +20461,7 @@
     "equip_requirements": [
       {
         "skill": 11,
-        "level": 700
+        "level": 750
       }
     ],
     "type": 5,
@@ -19844,7 +20520,7 @@
     "equip_requirements": [
       {
         "skill": 0,
-        "level": 700
+        "level": 750
       }
     ],
     "type": 2,
