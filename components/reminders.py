@@ -142,7 +142,7 @@ class ReminderCommands(commands.Component):
         
         if description:
             await ctx.reply(
-                f"/me Will remind you about \"{description}\" in {format_seconds(seconds, TimeSize.LONG)}."
+                f"/me Will remind you about \"{description}\" in {format_seconds(seconds, TimeSize.LONG, include_zero=False)}."
             )
         else:
             await ctx.reply(
