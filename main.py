@@ -10,6 +10,8 @@ import asyncio
 import ravenpy
 from datetime import timedelta
 
+from database.models import create_all_tables
+
 from components.textresponses import RavenTextCommands
 from components.characters import RavenCharacterCommands
 from components.charactertools import RavenCharacterTools
@@ -17,6 +19,8 @@ from components.raveninfo import RavenInfo
 from components.items import RavenItemCommands
 from components.help import HelpCommands
 from components.marketplace import MarketplaceCommands
+
+from components.reminders import ReminderCommands
 
 load_dotenv()
 
@@ -46,6 +50,7 @@ class Bot(commands.Bot):
 
         await self.add_component(HelpCommands(self))
         await self.add_component(TestCommands(self))
+        await self.add_component(ReminderCommands(self))
         
         self.auto_token_reload.start()
         LOGGER.info("Finished setup hook!")
@@ -122,6 +127,7 @@ class TestCommands(commands.Component):
 rfapi: ravenpy.RavenNest
 async def main() -> None:
     global rfapi
+    await create_all_tables()
     twitchio.utils.setup_logging(level=int(os.getenv("LOGGING_LEVEL")))
     rfapi = ravenpy.RavenNest(os.getenv("API_USER"), os.getenv("API_PASS"))
     await rfapi.login()
