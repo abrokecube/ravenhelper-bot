@@ -164,7 +164,7 @@ _time_str = {
 }
 
 
-def format_seconds(seconds: int, size=TimeSize.SMALL, max_terms=99):
+def format_seconds(seconds: int, size=TimeSize.SMALL, max_terms=99, include_zero=True):
     seconds = int(seconds)
     total_seconds = seconds
     negative = False
@@ -176,16 +176,16 @@ def format_seconds(seconds: int, size=TimeSize.SMALL, max_terms=99):
     minutes, seconds = divmod(seconds, 60)
     
     parts = []
-    if total_seconds >= 60*60*24:
+    if days:
         word = _time_str['day'][size.value] if days == 1 else _time_str['days'][size.value]
         parts.append(f"{days}{word}")
-    if total_seconds >= 60*60 :
+    if hours or (include_zero and days) :
         word = _time_str['hour'][size.value] if hours == 1 else _time_str['hours'][size.value]
         parts.append(f"{hours}{word}")
-    if total_seconds >= 60:
+    if minutes or (include_zero and hours) :
         word = _time_str['minute'][size.value] if minutes == 1 else _time_str['minutes'][size.value]
         parts.append(f"{minutes}{word}")
-    if total_seconds >= 0 or not parts:
+    if seconds or (include_zero and minutes) or not parts:
         word = _time_str['second'][size.value] if seconds == 1 else _time_str['seconds'][size.value]
         parts.append(f"{seconds}{word}")
     if size == TimeSize.LONG and len(parts) > 1:
