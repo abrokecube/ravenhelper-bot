@@ -182,10 +182,10 @@ def format_seconds(seconds: int, size=TimeSize.SMALL, max_terms=99, include_zero
     if hours or (include_zero and days) :
         word = _time_str['hour'][size.value] if hours == 1 else _time_str['hours'][size.value]
         parts.append(f"{hours}{word}")
-    if minutes or (include_zero and any(hours, days)) :
+    if minutes or (include_zero and any((hours, days))) :
         word = _time_str['minute'][size.value] if minutes == 1 else _time_str['minutes'][size.value]
         parts.append(f"{minutes}{word}")
-    if seconds or (include_zero and any(minutes, hours, days)) or not parts:
+    if seconds or (include_zero and any((minutes, hours, days))) or not parts:
         word = _time_str['second'][size.value] if seconds == 1 else _time_str['seconds'][size.value]
         parts.append(f"{seconds}{word}")
     if size == TimeSize.LONG and len(parts) > 1:
