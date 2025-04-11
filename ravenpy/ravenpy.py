@@ -101,6 +101,9 @@ class Item:
                 "stat": Stat(stat['stat']),
                 "level": stat['level']
             }))
+    
+    def __eq__(self, value: 'Item'):
+        return self.id == value.id
 
 class CharacterStat:
     def __init__(self, skill: Skills, exp: float, level: int):
@@ -507,7 +510,7 @@ class RavenNest:
         if self._auth and not _items:
             await self.refresh_items()
         else:
-            _load_local_item_data()
+            load_local_item_data()
     
     async def refresh_items(self):
         item_data = await _fetch_raw_item_data(self)
@@ -525,13 +528,13 @@ class RavenNest:
             response = await r.text()
         if '"token"' in response:
             self._auth = str(base64.b64encode(bytes(response,"utf-8")),'utf-8')
-            print("Ravenfall: Auth successful")
+            print("RavenNest: Auth successful")
         else:
-            print("Ravenfall: Auth unsuccessful!")
+            print("RavenNest: Auth unsuccessful!")
 
     async def _get(self,path):
         if not self._auth:
-            print("Ravenfall: Not authenticated! Call login() first!")
+            print("RavenNest: Not authenticated! Call login() first!")
             return {}
         async with aiohttp.ClientSession() as s:
             r = await s.get(
@@ -644,7 +647,7 @@ def _load_item_data(item_list):
         for uitem in item._used_in:
             item.used_in.append(_items_id_data[uitem])
 
-def _load_local_item_data():
+def load_local_item_data():
     with open(os.path.join(_dirname, 'data/items.json'), 'r') as f:
         _a = json.load(f)
         _load_item_data(_a)
