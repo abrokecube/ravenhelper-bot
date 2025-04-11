@@ -8,6 +8,7 @@ from functools import total_ordering
 from utils.parse_time import parse_time
 from utils.utils import format_seconds, format_timedelta, TimeSize, truncate_sentence, pl, strjoin
 from dataclasses import dataclass
+import logging
 
 # from database.session import get_async_session
 from database import models, utils
@@ -50,18 +51,24 @@ class Reminder:
     
     def __lt__(self, value: 'Reminder'):
         return self.end_time < value.end_time
-    
+
+class UnsentMessage(NamedTuple):
+    channel_id: str
+    reminder_id: int
+    message_content: str
 
 class ReminderCommands(commands.Component):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
         self.active_reminders: List[Reminder] = []
+        self.unsent_messages: List[UnsentMessage] = []
         
         self.active_reminders_user: Dict[str, List[Reminder]] = {}
         heapq.heapify(self.active_reminders)
         
         asyncio.create_task(self.load_reminders_from_db())
         asyncio.create_task(self.timer_task())
+        asyncio.create_task(self.unsent_message_task())
 
     def get_active_rem_user_key(self, ctx: commands.Context):
         return f"{ctx.broadcaster.name}_{ctx.author.id}"
@@ -182,34 +189,62 @@ class ReminderCommands(commands.Component):
             await session.flush()
             reminder.id = reminder_obj.id
     
-    async def delete_reminder_from_db(self, reminder: Reminder):
-        if reminder.id is None:
+    async def delete_reminder_from_db(self, reminder: Reminder = None, id: int = None):
+        r_id = id
+        if reminder and reminder.id is not None:
+            r_id = reminder.id
+        if r_id is None:
             return
         async with get_async_session() as session:
             result = await session.execute(
-                select(models.Reminder).where(models.Reminder.id == reminder.id)
+                select(models.Reminder).where(models.Reminder.id == r_id)
             )
             reminder_obj = result.scalar_one_or_none()
             if reminder_obj:
                 await session.delete(reminder_obj)
     
-                        
+    async def unsent_message_task(self):
+        while True:
+            for message in self.unsent_messages[:]:
+                channel = self.bot.create_partialuser(message.channel_id)
+                try:
+                    await channel.send_message(
+                        sender=self.bot.user, token_for=self.bot.user,
+                        message=message.message_content
+                    )
+                except:
+                    await asyncio.sleep(10)
+                else:
+                    self.unsent_messages.remove(message)
+                    await self.delete_reminder_from_db(id=message.reminder_id)
+                    
+            await asyncio.sleep(10)
+    
     async def timer_task(self):
         while True:
             now = datetime.now()
             for reminder in self.active_reminders[:]:
                 if now > reminder.end_time:
                     heapq.heappop(self.active_reminders)
-                    await self.delete_reminder_from_db(reminder)
                     key = f"{reminder.channel_name}_{reminder.user_id}"
                     self.active_reminders_user[key].remove(reminder)
                     desc = reminder.description or "Reminder!"
                     dur = format_seconds((reminder.end_time - reminder.start_time).total_seconds(), include_zero=False)
                     channel = self.bot.create_partialuser(reminder.channel_id)
-                    await channel.send_message(
-                        sender=self.bot.user, token_for=self.bot.user,
-                        message=f"/me @{reminder.user_name} dinkDonk {desc} (from {dur} ago)"
-                    )
+                    
+                    message_text = f"/me @{reminder.user_name} dinkDonk {desc} (from {dur} ago)"
+                    try:
+                        await channel.send_message(
+                            sender=self.bot.user, token_for=self.bot.user,
+                            message=message_text
+                        )
+                    except:
+                        logging.error(f"Failed to send a reminder message... Channel: {reminder.channel_name}/{reminder.channel_id}")
+                        self.unsent_messages.append(
+                            UnsentMessage(reminder.channel_id, reminder.id, message_text)
+                        )
+                    else:
+                        await self.delete_reminder_from_db(reminder)
                 else:
                     break
             await asyncio.sleep(0.25)
