@@ -217,14 +217,17 @@ class RavenCharacterCommands(commands.Component):
                 training_time_exp = timedelta(weeks=9999)
             s = utils.TimeSize.SMALL_SPACES if is_single_char else utils.TimeSize.SMALL
             # train_time_format = utils.format_timedelta(training_time_server, s) + '/' + utils.format_timedelta(training_time_exp, s)
+            train_time_diff = (training_time_exp - training_time_server)
+            char_is_offline = train_time_diff.total_seconds() > 60*5  # 5 minutes
             if char.training in (Skills.Attack, Skills.Defense, Skills.Strength) and not (char.in_raid or char.in_dungeon):
                 training_time_exp /= combat_mult
                 training_time_server /= combat_mult
             # train_time_format = utils.format_timedelta(training_time_server, s)
             train_time_format = utils.format_timedelta(training_time_exp, s)
-            # train_time_gap = utils.format_timedelta((training_time_exp - training_time_server))
             if char.island and not char.in_onsen:
-                if now < train_end_time:
+                if char_is_offline:
+                    train_time = f""
+                elif now < train_end_time:
                     if training_time_server.total_seconds() > 60*60*24*100:  # 99 days
                         train_time = f"Level in ∞"
                     else:
@@ -233,6 +236,8 @@ class RavenCharacterCommands(commands.Component):
                         train_time = ""
                 else:
                     train_time = f"Level in ---"
+                    
+            offline = "OFFLINE," if char_is_offline else ""
 
             exp_per_hr = f""
             if char.island and not char.in_onsen:
@@ -266,7 +271,7 @@ class RavenCharacterCommands(commands.Component):
                     clan = f"{clan_role} {preposition} clan {char.clan.name}"
 
             summary = utils.strjoin(
-                " ", char_name, index_and_combat_level, "is", what, where, entering_dungeon, where_island, captain, destination, rested
+                " ", char_name, index_and_combat_level, "is", offline, what, where, entering_dungeon, where_island, captain, destination, rested
             )
             out_str.append(utils.strjoin(
                 " – ", summary, target_item, utils.strjoin(', ', *stats), exp_per_hr, train_time, status_effects, clan
