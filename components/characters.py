@@ -218,7 +218,7 @@ class RavenCharacterCommands(commands.Component):
             s = utils.TimeSize.SMALL_SPACES if is_single_char else utils.TimeSize.SMALL
             # train_time_format = utils.format_timedelta(training_time_server, s) + '/' + utils.format_timedelta(training_time_exp, s)
             train_time_diff = (training_time_exp - training_time_server)
-            char_is_offline = train_time_diff.total_seconds() > 60*5  # 5 minutes
+            char_is_offline = train_time_diff.total_seconds() > 60*3  # 3 minutes
             if char.training in (Skills.Attack, Skills.Defense, Skills.Strength) and not (char.in_raid or char.in_dungeon):
                 training_time_exp /= combat_mult
                 training_time_server /= combat_mult
