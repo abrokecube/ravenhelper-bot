@@ -17,7 +17,7 @@ from database import models
 from database import utils as dbutils
 from database.models import create_all_tables
 from database.session import get_async_session
-from sqlalchemy import select
+from sqlalchemy import select, update
 from sqlalchemy.orm import joinedload
 
 from components.textresponses import RavenTextCommands
@@ -82,6 +82,13 @@ class Bot(commands.Bot):
                 LOGGER.warning(f"Failed to subscribe to {channel_id}")
                 fail_count += 1
         LOGGER.info(f"Joined {success_count} channels, failed to join {fail_count} channels.")
+
+        async with get_async_session() as session:
+            await session.execute(
+                update(models.BotSettings)
+                .where(models.BotSettings.channel_id.in_(self.subscribed_channels))
+                .values(bot_joined=1)
+            )
 
         self.auto_token_reload.start()
         LOGGER.info("Finished setup hook!")
@@ -240,26 +247,23 @@ class BotSettingsCommands(commands.Component):
     async def channels(self, ctx: commands.Context):
         """Prints all joined channels to console."""
         channel_texts = []
+        asdf = set()
         async with get_async_session() as session:
             result = await session.execute(
                 select(models.BotSettings)
-                .options(joinedload(models.BotSettings.channel))
                 .where(models.BotSettings.bot_joined == True)
+                .options(joinedload(models.BotSettings.channel))
             )
             channels = result.scalars().all()
-        asdf = set()
-        for settings_obj in channels:
-            channel_id = settings_obj.channel.id
-            channel_name = settings_obj.channel.name
-            asdf.add(channel_id)
-            if channel_name:
-                channel_texts.append(channel_name)
-            else:
-                user = await utils.get_user_cached(self.bot, user_id=channel_id)
-                channel_texts.append(f"{user.name}")
-        for ch_id in self.bot.subscribed_channels.difference(asdf):
-            user = await utils.get_user_cached(self.bot, user_id=ch_id)
-            channel_texts.append(f"{user.name}")
+            for settings_obj in channels:
+                channel_id = settings_obj.channel.id
+                channel_name = settings_obj.channel.name
+                asdf.add(str(channel_id))
+                if channel_name:
+                    channel_texts.append(channel_name)
+                else:
+                    user = await utils.get_user_cached(self.bot, user_id=channel_id)
+                    channel_texts.append(f"{user.name}")
         await ctx.reply(f"/me Currently in {utils.pl(len(channel_texts), 'channel')}.")
         print("--- CHANNELS JOINED ---")
         for channels in [channel_texts[i:i+5] for i in range(0, len(channel_texts), 5)]:
