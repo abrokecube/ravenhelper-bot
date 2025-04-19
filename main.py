@@ -61,6 +61,8 @@ class Bot(commands.Bot):
         await self.add_component(TestCommands(self))
         await self.add_component(ReminderCommands(self))
         
+
+        async with get_async_session() as session:
             result = await session.execute(
                 select(models.BotSettings.channel_id)
                 .where(models.BotSettings.bot_joined == True)
