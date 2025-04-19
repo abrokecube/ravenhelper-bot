@@ -3,6 +3,7 @@ import string
 from typing import Iterable, Dict, List, Tuple
 
 import thefuzz.process
+import twitchio
 from twitchio.ext import commands
 import os
 import thefuzz
@@ -14,7 +15,7 @@ import re
 from enum import Enum
 from math import inf
 import aiohttp
-
+from async_lru import alru_cache
 
 class TimeSize(Enum):
     SMALL = 0
@@ -403,3 +404,17 @@ def is_bot_owner():
         """Bot owner"""
         return ctx.chatter.id == os.getenv('OWNER_ID')
     return commands.guard(predicate)
+
+@alru_cache(maxsize=None)
+async def get_user_cached(client: twitchio.Client, *, user_id: str = None, user_login: str = None) -> twitchio.User:
+    if user_id:
+        result = await client.fetch_users(ids=[user_id])
+    elif user_login:
+        user_login = user_login.lstrip('@')
+        result = await client.fetch_users(logins=[user_login])
+    else:
+        return None
+    if not result:
+        return None
+    else:
+        return result[0]

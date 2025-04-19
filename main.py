@@ -9,8 +9,16 @@ import logging
 import asyncio
 import ravenpy
 from datetime import timedelta
+from typing import Set
 
+from utils import utils
+
+from database import models
+from database import utils as dbutils
 from database.models import create_all_tables
+from database.session import get_async_session
+from sqlalchemy import select
+from sqlalchemy.orm import joinedload
 
 from components.textresponses import RavenTextCommands
 from components.characters import RavenCharacterCommands
@@ -35,12 +43,12 @@ class Bot(commands.Bot):
             client_secret=os.getenv('CLIENT_SECRET'),
             bot_id=os.getenv('BOT_ID'),
             owner_id=os.getenv('OWNER_ID'),
-            prefix="?"
+            prefix=self.get_channel_prefixes
         )
+        self.channel_prefixes = {}
+        self.subscribed_channels: Set[str] = set()
 
-    async def setup_hook(self) -> None:
-        payload = eventsub.ChatMessageSubscription(broadcaster_user_id=TARGET_CHANNEL, user_id=self.bot_id)
-        await self.subscribe_websocket(payload=payload)
+    async def setup_hook(self) -> None:        
         await self.add_component(RavenTextCommands(self))
         await self.add_component(RavenCharacterCommands(self, rfapi))
         await self.add_component(RavenCharacterTools(self, rfapi))
@@ -49,13 +57,53 @@ class Bot(commands.Bot):
         await self.add_component(MarketplaceCommands(self, rfapi))
 
         await self.add_component(HelpCommands(self))
+        await self.add_component(BotSettingsCommands(self))
         await self.add_component(TestCommands(self))
         await self.add_component(ReminderCommands(self))
         
+            result = await session.execute(
+                select(models.BotSettings.channel_id)
+                .where(models.BotSettings.bot_joined == True)
+            )
+            channels = set(result.scalars().all())
+        LOGGER.info(f"Joining {len(channels)} channels...")
+        channels.add(int(TARGET_CHANNEL))
+        channels.add(int(self.owner_id))
+        channels.add(int(BOT_ID))
+        fail_count = 0
+        success_count = 0
+        for channel_id in channels:
+            try:
+                await self.join_channel(channel_id, False)
+                success_count += 1
+            except twitchio.HTTPException:
+                LOGGER.warning(f"Failed to subscribe to {channel_id}")
+                fail_count += 1
+        LOGGER.info(f"Joined {success_count} channels, failed to join {fail_count} channels.")
+
         self.auto_token_reload.start()
         LOGGER.info("Finished setup hook!")
 
+    async def join_channel(self, channel_id: str, write_db = True):
+        payload = eventsub.ChatMessageSubscription(
+            broadcaster_user_id=str(channel_id), user_id=self.bot_id)
+        await self.subscribe_websocket(payload=payload)
+        self.subscribed_channels.add(str(channel_id))
+        if write_db:
+            async with get_async_session() as session:
+                settings = await dbutils.get_channel_settings(session, id=channel_id)
+                settings.bot_joined = True
+
+    async def part_channel(self, channel_id: str):
+        self.subscribed_channels.remove(str(channel_id))
+        async with get_async_session() as session:
+            settings = await dbutils.get_channel_settings(session, id=channel_id)
+            settings.bot_joined = False
+            
     async def event_message(self, payload):
+        if not payload.broadcaster.id in self.subscribed_channels:
+            return
+        
         while self._is_reloading_tokens:
             await asyncio.sleep(0.5)
 
@@ -93,11 +141,127 @@ class Bot(commands.Bot):
         else:
             # await payload.context.reply("bruh Error.")
             return await super().event_command_error(payload)
-    
+
+    async def get_channel_prefixes(self, bot: commands.Bot, message: twitchio.ChatMessage):
+        if not message.broadcaster.id in self.channel_prefixes:
+            async with get_async_session() as session:
+                channel_settings = await dbutils.get_channel_settings(session, channel=message.broadcaster)
+                self.channel_prefixes[message.broadcaster.id] = channel_settings.prefix
+        return self.channel_prefixes[message.broadcaster.id]
+
+
     @routines.routine(delta=timedelta(days=1), wait_first=True, wait_remainder=True)
     async def auto_token_reload(self):
         await self.reload_tokens()
 
+
+class BotSettingsCommands(commands.Component):
+    def __init__(self, bot: Bot):
+        self.bot = bot
+
+    @commands.is_elevated()
+    @commands.command(aliases=('setprefix','changeprefix','prefixset','modifyprefix'))
+    async def prefix(self, ctx: commands.Context, *args: str):
+        """Set the bot's prefix for commands."""
+        if not args:
+            await ctx.reply("Include one or more prefixes separated with a space.")
+            return
+        async with get_async_session() as session:
+            channel_settings = await dbutils.get_channel_settings(session, channel=ctx.message.broadcaster)
+            channel_settings.prefix = list(args)
+        await ctx.reply(
+            f"Prefix set to {utils.strjoin(', ', *[f'"{x}"' for x in args], before_end=' and ')} "
+            f"for channel #{ctx.message.broadcaster.name}"
+        )
+        self.bot.channel_prefixes[ctx.message.broadcaster.id] = args
+    
+    @commands.command()
+    async def join(self, ctx: commands.Context, user: str=""):
+        """Add the bot to your channel. Can only be used in the bot's channel or abrokecube's channel."""
+        if user and not ctx.is_owner():
+            return
+        if (not ctx.is_owner()) and (ctx.broadcaster.id not in (self.bot.bot_id, self.bot.owner_id)):
+            return
+        channel = ctx.author
+        if user:
+            channel = await utils.get_user_cached(self.bot, user_login=user)
+        if channel is None:
+            await ctx.reply(
+                "Not a valid channel..."
+            )
+        if channel.id in self.bot.subscribed_channels:
+            await ctx.reply(
+                f"Already listening to this channel! "
+                f"(You can force rejoin by using {ctx.prefix}part and then {ctx.prefix}{ctx.invoked_with} again)"
+            )
+            return
+        try:
+            await self.bot.join_channel(channel.id)
+            await ctx.reply(
+                f"Joined #{channel.display_name}!"
+            )
+            await channel.send_message(
+                sender=self.bot.user,
+                token_for=self.bot.user,
+                message=f"/me joined #{channel.display_name}!"
+            )
+        except twitchio.HTTPException:
+            await ctx.reply(
+                "Failed to join channel! :("
+            )
+            
+    @commands.command()
+    async def part(self, ctx: commands.Context, user: str=""):
+        """Removes the bot from your channel."""
+        if user and not ctx.is_owner():
+            return
+        channel = ctx.broadcaster
+        if ctx.broadcaster.id in (self.bot.bot_id, self.bot.owner_id):
+            channel = ctx.author
+        elif not (ctx.author.broadcaster or ctx.author.moderator or ctx.author.vip):
+            return
+        if user:
+            channel = await utils.get_user_cached(self.bot, user_login=user)
+            
+        if not channel.id in self.bot.subscribed_channels:
+            await ctx.reply(
+                f"Bot is not in #{channel.name}."
+            )
+            return
+        await self.bot.part_channel(channel.id)
+        await ctx.reply(
+            f"/me left #{channel.name}."
+        )
+
+    @commands.is_owner()
+    @commands.command()
+    async def channels(self, ctx: commands.Context):
+        """Prints all joined channels to console."""
+        channel_texts = []
+        async with get_async_session() as session:
+            result = await session.execute(
+                select(models.BotSettings)
+                .options(joinedload(models.BotSettings.channel))
+                .where(models.BotSettings.bot_joined == True)
+            )
+            channels = result.scalars().all()
+        asdf = set()
+        for settings_obj in channels:
+            channel_id = settings_obj.channel.id
+            channel_name = settings_obj.channel.name
+            asdf.add(channel_id)
+            if channel_name:
+                channel_texts.append(channel_name)
+            else:
+                user = await utils.get_user_cached(self.bot, user_id=channel_id)
+                channel_texts.append(f"{user.name}")
+        for ch_id in self.bot.subscribed_channels.difference(asdf):
+            user = await utils.get_user_cached(self.bot, user_id=ch_id)
+            channel_texts.append(f"{user.name}")
+        await ctx.reply(f"/me Currently in {utils.pl(len(channel_texts), 'channel')}.")
+        print("--- CHANNELS JOINED ---")
+        for channels in [channel_texts[i:i+5] for i in range(0, len(channel_texts), 5)]:
+            print(', '.join(channels))
 
 class TestCommands(commands.Component):
     def __init__(self, bot: Bot):

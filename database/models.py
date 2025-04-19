@@ -2,7 +2,7 @@ from database import enums
 from database.db import engine
 
 from sqlalchemy import (
-    Column, String, Integer, ForeignKey, Table, Enum, Boolean, DateTime, Float
+    Column, String, Integer, ForeignKey, Table, Enum, Boolean, DateTime, Float, JSON
 )
 from sqlalchemy.orm import relationship, declarative_base
 from sqlalchemy.ext.asyncio import AsyncAttrs
@@ -10,14 +10,6 @@ from sqlalchemy.orm import DeclarativeBase
 
 class Base(AsyncAttrs, DeclarativeBase):
     pass
-
-# Association table for many-to-many relationship
-channel_alert = Table(
-    'channel_alert',
-    Base.metadata,
-    Column('channel_name', String, ForeignKey('channels.name'), primary_key=True),
-    Column('alert_id', Integer, ForeignKey('alerts.id'), primary_key=True)
-)
 
 
 class User(Base):
@@ -34,9 +26,22 @@ class Channel(Base):
 
     id = Column(Integer, primary_key=True)
     name = Column(String)
+    prefix = Column(JSON, nullable=False, default=["?"])
 
-    alerts = relationship('Alert', secondary=channel_alert, back_populates='subscribers')
     reminders = relationship("Reminder", back_populates='channel')
+    alerts = relationship("Alert", back_populates='channel')
+    settings = relationship("BotSettings", back_populates="channel", uselist=False)
+
+
+class BotSettings(Base):
+    __tablename__ = 'botsettings'
+    
+    channel_id = Column(Integer, ForeignKey('channels.id'), primary_key=True)
+    
+    prefix = Column(JSON, nullable=False, default=['?'])
+    bot_joined = Column(Boolean, nullable=False, default=False)
+    
+    channel = relationship("Channel", back_populates='settings')
 
 
 class Alert(Base):
@@ -44,8 +49,14 @@ class Alert(Base):
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     type = Column(Enum(enums.AlertType), nullable=False)
+    data = Column(JSON, nullable=True)
+    to_chat = Column(Boolean, nullable=False)
+    to_whisper = Column(Boolean, nullable=False)
+    to_announce = Column(Boolean, nullable=False)
 
-    subscribers = relationship('Channel', secondary=channel_alert, back_populates='alerts')
+    channel_id = Column(Integer, ForeignKey('channels.id'))
+    
+    channel = relationship("Channel", back_populates='alerts')
 
 
 class Reminder(Base):
@@ -61,7 +72,6 @@ class Reminder(Base):
     
     user = relationship("User", back_populates='reminders')
     channel = relationship("Channel", back_populates='reminders')
-
 
 
 async def create_all_tables():

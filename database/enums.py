@@ -1,4 +1,11 @@
 from enum import Enum
 
 class AlertType(Enum):
-    DESYNC_WARNING = "desync"
+    DESYNC = "desync"
+    TITLE = "title"
+    CATEGORY = "category"
+    # POLL = "poll"
+    # PREDICTION = "prediction"
+    LIVE = "live"
+    OFFLINE = "offline"
+    PINS = "pins"

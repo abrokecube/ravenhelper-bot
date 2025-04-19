@@ -653,6 +653,48 @@ class RavenCharacterCommands(commands.Component):
             f"Rested status for {user_name} ✦ {utils.strjoin(' • ', *char_strs)}",
             me=True
         )
+    
+    @commands.command(aliases=('lastupdate','lastupdated?'))
+    async def desync(self, ctx: commands.Context, user: str = ''):
+        """Get a user's desync (time since last updated).
+        
+        Args:
+            user (str, optional): Twitch username.
+        """
+        user_chars = await charutils.get_user_characters(self.rf_api, ctx, user)
+        if user_chars is None:
+            return
+        user_name = user_chars[0].user_name
+        char_strs = []
+        now = datetime.now(timezone.utc)
+        for char in user_chars:
+            desync_s = None
+            if char.estimated_level_time and char.exp_per_hour > 0:
+                training_time_server = char.estimated_level_time - now
+                closest_stat = char.training_stats[0]
+                exp_to_next_level = closest_stat.total_exp_for_level-closest_stat.level_exp
+                training_time_exp = timedelta(seconds=(exp_to_next_level) / (char.exp_per_hour/60/60))
+                train_time_diff = (training_time_exp - training_time_server)
+                desync_s = train_time_diff.total_seconds()
+                char_str = f"{utils.format_seconds(desync_s)}"
+            else:
+                char_str = f"Unknown"
+                if char.is_resting:
+                    char_str += " (resting)"
+                elif not char.training:
+                    char_str += " (not training)"
+                elif char.training == Skills.Sailing:
+                    char_str += " (sailing)"
+            
+            char_name = utils.truncate_sentence(char.name, 30)
+            char_strs.append(
+                f"{char_name}: {char_str}"
+            )
+        await ctx.reply(
+            f"Last update times for {user_name} ✦ {utils.strjoin(' • ', *char_strs)}",
+            me=True
+        )
+
     # _training_currently_calculating = set()
     
     # @commands.command(aliases=('train',))

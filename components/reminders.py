@@ -232,14 +232,14 @@ class ReminderCommands(commands.Component):
                     dur = format_seconds((reminder.end_time - reminder.start_time).total_seconds(), include_zero=False)
                     channel = self.bot.create_partialuser(reminder.channel_id)
                     
-                    message_text = f"/me @{reminder.user_name} dinkDonk {desc} (from {dur} ago)"
+                    message_text = f"/me @{reminder.user_name} dinkDonk {desc} ({dur})"
                     try:
                         await channel.send_message(
                             sender=self.bot.user, token_for=self.bot.user,
                             message=message_text
                         )
-                    except:
-                        logging.error(f"Failed to send a reminder message... Channel: {reminder.channel_name}/{reminder.channel_id}")
+                    except Exception as e:
+                        logging.error(f"Failed to send a reminder message... Channel: {reminder.channel_name}/{reminder.channel_id}... Exception: {e}")
                         self.unsent_messages.append(
                             UnsentMessage(reminder.channel_id, reminder.id, message_text)
                         )
