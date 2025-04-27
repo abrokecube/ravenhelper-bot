@@ -158,8 +158,8 @@ class RavenTextCommands(commands.Component):
         if len(msg_postfix) > 0:
             msg_postfix = " | " + msg_postfix
         await ctx.reply(f"/me Minimum level to equip {msg_prefix} E.Bronze - 500 • E.Iron - 525 • " \
-                        "E.Steel - 550 • E.Mithril - 600 • E.Adamantite - 650 • E.Rune - 700 • " \
-                        "E.Dragon - 750 • E.Abraxas - 800 • E.Phantom - 850 • E.Lionsbane - 875 • " \
+                        "E.Steel - 550 • E.Black - 600 • E.Mithril - 650 • E.Adamantite - 700 • E.Rune - 750 • " \
+                        "E.Dragon - 800 • E.Abraxas - 825 • E.Phantom - 850 • E.Lionsbane - 875 • " \
                         f"E.Ether - 900 • E.Ancient - 950 • E.Atlarus - 999{msg_postfix}")
 
     @commands.command(aliases=('skill','train'))
