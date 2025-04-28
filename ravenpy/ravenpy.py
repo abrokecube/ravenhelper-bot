@@ -670,7 +670,7 @@ equipment_levels = {
     ItemMaterials.ElderBronze: 500,
     ItemMaterials.ElderIron: 525,
     ItemMaterials.ElderSteel: 550,
-    ItemMaterials.ElderBlack: 600,
+    # ItemMaterials.ElderBlack: 600,
     ItemMaterials.ElderMithril: 650,
     ItemMaterials.ElderAdamantite: 700,
     ItemMaterials.ElderRune: 750,
