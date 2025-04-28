@@ -85,14 +85,6 @@ skill_map = {
     "every": 'every',
 }
 
-def get_char_identifier(char: ravenpy.Character):
-    char_name = utils.truncate_sentence(char.name, 40)
-    if char_name == str(char.index):
-        char_name = f"Character {char_name}"
-    out_str = f"{char_name} ({char.character_index}, Lv{char.combat_level})"
-    return out_str
-    
-
 class RavenCharacterCommands(commands.Component):
     def __init__(self, bot: commands.Bot, rf_api: ravenpy.RavenNest):
         self.bot = bot
@@ -116,7 +108,7 @@ class RavenCharacterCommands(commands.Component):
         out_str = []
         is_single_char = len(user_chars) == 1
         for char in user_chars:
-            char_name = utils.truncate_sentence(char.name, 40)
+            char_name = utils.unping(utils.truncate_sentence(char.name, 40))
 
             if char_name in ['1', '2', '3']:
                 char_name = f"Character {char_name}"
@@ -277,7 +269,7 @@ class RavenCharacterCommands(commands.Component):
                 " – ", summary, target_item, utils.strjoin(', ', *stats), exp_per_hr, train_time, status_effects, clan
             ))
         # coins = f"{utils.pl(user_chars[0].coins, 'coins')}"
-        user_name = f"󠀀{user_chars[0].user_name}"
+        user_name = f"{utils.unping(user_chars[0].user_name)}"
         out_msgs = utils.strjoin_len(" ✦ ", MAX_MSG_LENGTH, user_name, *out_str)
         out_msgs = utils.strextend(out_msgs, MAX_MSG_LENGTH, f" | Training time is estimated")
         # out = " ✦ ".join(out_str)
@@ -298,7 +290,7 @@ class RavenCharacterCommands(commands.Component):
         has_armor_recs = False
         out_str = []
         for char in user_chars:
-            char_name = utils.truncate_sentence(char.name, 40)
+            char_name = utils.unping(utils.truncate_sentence(char.name, 40))
             index_and_combat_level = f"({char.character_index}, Lv{char.combat_level})"
             is_training_combat = False
             
@@ -400,7 +392,7 @@ class RavenCharacterCommands(commands.Component):
 
         if has_armor_recs:
             out_str[-1] += f" | {ctx.prefix}recsymbols if you're confused"
-        await ctx.reply(utils.strjoin('', f'/me Recommendations for {user_chars[0].user_name} – ', utils.strjoin(' ✦ ', *out_str)))
+        await ctx.reply(utils.strjoin('', f'/me Recommendations for {utils.unping(user_chars[0].user_name)} – ', utils.strjoin(' ✦ ', *out_str)))
 
     @commands.command()
     async def recsymbols(self, ctx: commands.Context):
@@ -424,10 +416,10 @@ class RavenCharacterCommands(commands.Component):
         if user_chars is None:
             return
 
-        out_str = [f"Inspect links for {user_chars[0].user_name}"]
+        out_str = [f"Inspect links for {utils.unping(user_chars[0].user_name)}"]
         for char in user_chars:
             index_and_combat_level = f"({char.character_index}, Lv{char.combat_level})"
-            char_name = utils.truncate_sentence(char.identifier, 40)
+            char_name = utils.unping(utils.truncate_sentence(char.identifier, 40))
             out_str.append(f"{char_name} {index_and_combat_level}: https://www.ravenfall.stream/inspect/{char.id}")
         if len(out_str) == 0:
             await ctx.reply("This user has no characters.")
@@ -445,7 +437,7 @@ class RavenCharacterCommands(commands.Component):
         user_chars = await charutils.get_user_characters(self.rf_api, ctx, user)
         if user_chars is None:
             return
-        user_name = user_chars[0].user_name
+        user_name = utils.unping(user_chars[0].user_name)
         coin_amount = user_chars[0].coins
         worth_strings = []
         total_worth = coin_amount
@@ -455,7 +447,7 @@ class RavenCharacterCommands(commands.Component):
                 inventory_worth += item.item.sell_price * item.amount
             total_worth += inventory_worth
             worth_strings.append(
-                f"{utils.truncate_sentence(char.name, 30)}: {utils.pl(inventory_worth, 'coin')}"
+                f"{utils.unping(utils.truncate_sentence(char.name, 30))}: {utils.pl(inventory_worth, 'coin')}"
             )            
         await ctx.reply(
             f"/me {user_name} has {utils.pl(coin_amount, 'coin')} ✦ "\
@@ -474,9 +466,9 @@ class RavenCharacterCommands(commands.Component):
         user_chars = await charutils.get_user_characters(self.rf_api, ctx, user)
         if user_chars is None:
             return
-        user_name = user_chars[0].user_name
+        user_name = utils.unping(user_chars[0].user_name)
                     
-        char_trainings = [f"{get_char_identifier(x)} is training {x.training.name}" for x in user_chars]
+        char_trainings = [f"{utils.get_char_identifier(x)} is training {x.training.name}" for x in user_chars]
         await ctx.reply(
             f"{user_name} ✦ {utils.strjoin(' – ', *char_trainings)}",
             me=True
@@ -493,7 +485,7 @@ class RavenCharacterCommands(commands.Component):
         user_chars = await charutils.get_user_characters(self.rf_api, ctx, user)
         if user_chars is None:
             return
-        user_name = user_chars[0].user_name
+        user_name = utils.unping(user_chars[0].user_name)
         
         char_trainings = []
         
@@ -533,7 +525,7 @@ class RavenCharacterCommands(commands.Component):
                 destination = f"waiting for the ferry"
 
             summary = utils.strjoin(
-                " ", get_char_identifier(char), "is", what, where, entering_dungeon, where_island, captain, destination
+                " ", utils.get_char_identifier(char), "is", what, where, entering_dungeon, where_island, captain, destination
             )
             char_trainings.append(summary)
             
@@ -552,7 +544,7 @@ class RavenCharacterCommands(commands.Component):
         user_chars = await charutils.get_user_characters(self.rf_api, ctx, user)
         if user_chars is None:
             return
-        user_name = user_chars[0].user_name
+        user_name = utils.unping(user_chars[0].user_name)
         char_strs = []
         for char in user_chars:
             char_statuses = []
@@ -575,7 +567,7 @@ class RavenCharacterCommands(commands.Component):
                     char_statuses.append("resting")
             if len(char_statuses) == 0:
                 char_statuses.append("none")
-            char_name = utils.truncate_sentence(char.name, 30)
+            char_name = utils.unping(utils.truncate_sentence(char.name, 30))
             char_strs.append(
                 f"{char_name}: {utils.strjoin(', ', *char_statuses, before_end=' and ').capitalize()}"
             )
@@ -594,8 +586,8 @@ class RavenCharacterCommands(commands.Component):
         user_chars = await charutils.get_user_characters(self.rf_api, ctx, user)
         if user_chars is None:
             return
-        user_name = user_chars[0].user_name
-        char_strs = []
+        user_name = utils.unping(user_chars[0].user_name)
+        char_strs = []        
         for char in user_chars:
             char_statuses = []
             for status in char.status_effects:
@@ -606,7 +598,7 @@ class RavenCharacterCommands(commands.Component):
             if len(char_statuses) == 0:
                 char_statuses.append("No active effects")
 
-            char_name = utils.truncate_sentence(char.name, 30)
+            char_name = utils.unping(utils.truncate_sentence(char.name, 30))
             char_strs.append(
                 f"{char_name}: {utils.strjoin(', ', *char_statuses, before_end=' and ')}"
             )
@@ -626,7 +618,7 @@ class RavenCharacterCommands(commands.Component):
         user_chars = await charutils.get_user_characters(self.rf_api, ctx, user)
         if user_chars is None:
             return
-        user_name = user_chars[0].user_name
+        user_name = utils.unping(user_chars[0].user_name)
         char_strs = []
         for char in user_chars:
             is_rested = char.rested_time.total_seconds() > 0
@@ -645,7 +637,7 @@ class RavenCharacterCommands(commands.Component):
                     enter_time = utils.format_seconds(((char.rested_time.total_seconds()/60)-char.auto_rest_start)*60, utils.TimeSize.MEDIUM_SPACES)
                     char_str += f"Returning in {enter_time}."
             
-            char_name = utils.truncate_sentence(char.name, 30)
+            char_name = utils.unping(utils.truncate_sentence(char.name, 30))
             char_strs.append(
                 f"{char_name}: {char_str}"
             )
@@ -664,7 +656,7 @@ class RavenCharacterCommands(commands.Component):
         user_chars = await charutils.get_user_characters(self.rf_api, ctx, user)
         if user_chars is None:
             return
-        user_name = user_chars[0].user_name
+        user_name = utils.unping(user_chars[0].user_name)
         char_strs = []
         now = datetime.now(timezone.utc)
         for char in user_chars:
@@ -686,7 +678,7 @@ class RavenCharacterCommands(commands.Component):
                 elif char.training == Skills.Sailing:
                     char_str += " (sailing)"
             
-            char_name = utils.truncate_sentence(char.name, 30)
+            char_name = utils.unping(utils.truncate_sentence(char.name, 30))
             char_strs.append(
                 f"{char_name}: {char_str}"
             )
@@ -929,9 +921,9 @@ class RavenCharacterCommands(commands.Component):
         if (not specified_skills) or include_combat_lvl:
             combat_levels = f"Combat level: {char_combat_levels}"
             
-        char_names = utils.strjoin(', ', *[x.name for x in user_chars], before_end=' and ')
+        char_names = utils.strjoin(', ', *[utils.unping(x.name) for x in user_chars], before_end=' and ')
         out_strings = utils.strjoin_len(' ✦ ', MAX_MSG_LENGTH,
-            f"Stats for {user_chars[0].user_name}: {char_names}",
+            f"Stats for {utils.unping(user_chars[0].user_name)}: {char_names}",
             combat_levels,
         )
         out_strings = utils.strextend(
@@ -946,7 +938,7 @@ class RavenCharacterCommands(commands.Component):
         for text in out_strings:
             await ctx.reply(text, me=True)
 
-    @commands.command(aliases=('charitem',))
+    @commands.command(aliases=('charitem','count'))
     async def items(self, ctx: commands.Context, *args):
         """Show how much of an item a user has.
         
@@ -1007,7 +999,7 @@ class RavenCharacterCommands(commands.Component):
         if user_chars is None:
             return
         
-        user_char_names = [x.name for x in user_chars]
+        user_char_names = [utils.unping(x.name) for x in user_chars]
         items_str = []
         for item_name in items_q.keys():
             item_counts = []
@@ -1021,7 +1013,7 @@ class RavenCharacterCommands(commands.Component):
                 item_counts.append(f"×{total_count}")
             items_str.append(f"{item_name}: {', '.join(item_counts)}")
         out_text = utils.strjoin_len(
-            '', MAX_MSG_LENGTH, f"Items for {user_chars[0].user_name}: ",
+            '', MAX_MSG_LENGTH, f"Items for {utils.unping(user_chars[0].user_name)}: ",
             utils.strjoin(', ', *user_char_names, before_end=' and '),
             ' ✦ ', *utils.strjoin_list(' • ', *items_str)
         )

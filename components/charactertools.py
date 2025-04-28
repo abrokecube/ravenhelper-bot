@@ -29,7 +29,7 @@ class RavenCharacterTools(commands.Component):
             return
         
         character = user_chars[0]
-        target_user = result.leftover_args[0]
+        target_user = utils.filter_username(result.leftover_args[0])
         
         if not utils.is_twitch_username(target_user):
             await ctx.reply("uuh Recipient is not a valid Twitch username.")
@@ -53,7 +53,7 @@ class RavenCharacterTools(commands.Component):
             await ctx.reply("bruh Failed to upload text to pastes.")
         else:
             await ctx.reply(
-                f"Gift commands for {utils.get_char_identifier(character)} to {target_user}: {text_url}"
+                f"Gift commands for {utils.get_char_identifier(character)} to {utils.unping(target_user)}: {text_url}"
             )
 
         

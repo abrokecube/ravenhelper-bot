@@ -4,7 +4,7 @@ import ravenpy
 import asyncio
 from async_lru import alru_cache
 import re
-from .utils import split_arguments, SplitQuery, SplitWildcard, strjoin, is_twitch_username
+from .utils import split_arguments, SplitQuery, SplitWildcard, strjoin, is_twitch_username, filter_username
 DEBUG = True
 
 def match_identifier(chars: List[ravenpy.Character], target: str):
@@ -24,7 +24,7 @@ async def _get_characters(bot: commands.Bot, rfapi: ravenpy.RavenNest, *, user_i
     uid = user_id
     if uid is None:
         if user_name:
-            user_query = await bot.fetch_users(logins=[user_name.strip('@'),])
+            user_query = await bot.fetch_users(logins=[filter_username(user_name),])
             if user_query:
                 user_id = user_query[0].id
             else:
@@ -86,8 +86,9 @@ async def search_user_characters(
 ) -> CharSearchResult | None:
     include_user = False
     args_filtered = [x for x in args if x]
-    if args_filtered and is_twitch_username(args_filtered[0]):
+    if args_filtered and is_twitch_username(args_filtered[0], True):
         include_user = True
+        args_filtered[0] = filter_username(args_filtered[0])
         
     tasks = [
         _get_characters(ctx.bot, rfapi, user_id=ctx.author.id),

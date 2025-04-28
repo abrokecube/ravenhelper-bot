@@ -371,8 +371,15 @@ def split_arguments(in_str: str | Iterable[str], *queries: SplitQuery | SplitWil
     return tuple(out_results)
 
 tw_username_re = re.compile(r"^@?[a-zA-Z0-9][\w]{2,24}$")
-def is_twitch_username(text: str):
-    return bool(tw_username_re.match(text))
+tw_username_f_re = re.compile(r"^@?[a-zA-Z0-9/|][\w/|]{2,24}$")
+def is_twitch_username(text: str, pre_filter=False):
+    if pre_filter:
+        return bool(tw_username_f_re.match(text))
+    else:
+        return bool(tw_username_re.match(text))
+
+def filter_username(text: str):
+    return text.lstrip("@").replace("|","").replace("/","")
 
 @cached(cache=TTLCache(maxsize=1, ttl=30))
 def get_item_split_query():
@@ -392,8 +399,21 @@ async def upload_to_pastes(text: str):
         else:
             return None
 
+def unping(in_str: str):
+    out = []
+    for word in in_str.split():
+        if len(word) < 3:
+            out.append(word)
+        elif len(word) < 6:
+            out.append(f"\U000e0000{word}")
+        else:
+            a = word[:-2]
+            b = word[-2:]
+            out.append(f"\U000e0000{a}\U000e0000{b}")
+    return ' '.join(out)
+
 def get_char_identifier(char: ravenpy.Character):
-    char_name = truncate_sentence(char.name, 40)
+    char_name = unping(truncate_sentence(char.name, 40))
     if char_name == str(char.index):
         char_name = f"Character {char_name}"
     out_str = f"{char_name} ({char.character_index}, Lv{char.combat_level})"
