@@ -873,7 +873,7 @@ class RavenCharacterCommands(commands.Component):
 
         if not skills:
             for skill in ravenpy.Skills:
-                if skill != Skills.All:
+                if skill not in (Skills.All, Skills.Melee):
                     skills[skill] = None
         
         stats_str = []
