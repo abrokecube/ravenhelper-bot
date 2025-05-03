@@ -100,6 +100,7 @@ class Skills(Enum):
     Healing = 14
     Gathering = 15
     Alchemy = 16
+    Melee = 900
     All = 999
 
 class Enchantments(Enum):

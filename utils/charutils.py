@@ -51,9 +51,10 @@ class CharSearchResult:
         self.leftover_args = leftover.split()
 
 async def get_user_characters(rfapi: ravenpy.RavenNest, ctx: commands.Context, user: str=''):
-    if user and not is_twitch_username(user):
+    if user and not is_twitch_username(user, True):
         await ctx.reply(f"uuh {user} is not a valid username.")
         return None
+    user = filter_username(user)
     if not user:
         user_chars = await _get_characters(ctx.bot, rfapi, user_id=ctx.author.id)
         if user_chars is None:

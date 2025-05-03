@@ -425,6 +425,8 @@ class Character:
                         enchantment=''
                     )
                 self.target_item = inv_item
+        if self.training == Skills.Melee:
+            self.training = Skills.All
 
         if not self.training:
             if (not self.island) or self.destination == Islands.Ferry:
@@ -432,7 +434,7 @@ class Character:
 
         self.training_stats: List[CharacterStat] = []
         if self.training:
-            if self.training in (Skills.All, Skills.Health):
+            if self.training in (Skills.All, Skills.Health, Skills.Melee):
                 self.training_stats.extend([self.health, self.attack, self.defense, self.strength])
             else:
                 self.training_stats.append(self.get_skill(self.training))
@@ -729,7 +731,7 @@ def get_material_for_level(level: int):
 
 fighting_skills = (
     Skills.Attack, Skills.Defense, Skills.Strength, Skills.Health,
-    Skills.Magic, Skills.Ranged, Skills.Healing, Skills.All
+    Skills.Magic, Skills.Ranged, Skills.Healing, Skills.All, Skills.Melee
 )
 combat_skills = fighting_skills
 resource_skills = (
