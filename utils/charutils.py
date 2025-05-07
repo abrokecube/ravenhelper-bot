@@ -116,22 +116,38 @@ async def search_user_characters(
     # char_indexes = [str(x) for x in range(max(len(author_chars), len(user_chars) if user_chars else 0))]
     user_char_indexes = [str(x.index) for x in user_chars] if user_chars else []
     author_char_indexes = [str(x.index) for x in author_chars]
-    if username:
+    if username and len(args_filtered) == 1:
         result = split_arguments(args_filtered,
             SplitWildcard(),
-            SplitQuery(user_char_names+author_char_names, optional=True),
-            SplitQuery(user_char_indexes+author_char_indexes, optional=True),
+            SplitQuery(author_char_names, optional=True),
+        )
+        index_q = ''
+        rest_q = ''
+        user_q, char_q = [x.text for x in result]
+    elif username:
+        result = split_arguments(args_filtered,
+            SplitQuery(author_char_names, optional=True),
+            SplitQuery([username], optional=True),
+            SplitQuery(user_char_names, optional=True),
+            SplitQuery(user_char_indexes+author_char_indexes+['all'], optional=True),
             SplitWildcard()
         )
-        user_q, char_q, index_q, rest_q = [x.text for x in result]
+        achar_q, user_q, uchar_q, index_q, rest_q = [x.text for x in result]
+        if (uchar_q and achar_q) or (achar_q and index_q == "all"):
+            achar_q = ''
+            user_q = args_filtered[0]
+        char_q = achar_q or uchar_q
+        if achar_q:
+            user_q = ''
+        # user_q, char_q, index_q, rest_q = [x.text for x in result]
         rest_q_split = rest_q.split()
         if rest_q_split and rest_q_split[0] == username:
-            user_q = username.lstrip('@')
+            user_q = username
             rest_q = " ".join(rest_q_split[1:])
     else:
         char_indexes = [str(x.index) for x in author_chars]
         result = split_arguments(args_filtered, 
-            SplitQuery(char_indexes, optional=True), 
+            SplitQuery(char_indexes+['all'], optional=True), 
             SplitQuery(author_char_names, optional=True), 
             SplitWildcard()
         )
@@ -139,6 +155,10 @@ async def search_user_characters(
         index_q, char_q, rest_q = [x.text for x in result]
     out_chars = []
     
+    if index_q == "all":
+        index_q = ''
+        char_q = ''
+
     if author_chars_fallback and not user_chars:
         rest_q = strjoin(' ', username, rest_q)
         user_q = ''
