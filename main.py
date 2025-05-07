@@ -269,6 +269,17 @@ class BotSettingsCommands(commands.Component):
         for channels in [channel_texts[i:i+5] for i in range(0, len(channel_texts), 5)]:
             print(', '.join(channels))
 
+    @commands.is_owner()
+    @commands.command()
+    async def rf_reauth(self, ctx: commands.Context):
+        r = await rfapi._authenticate()
+        if r:
+            await ctx.reply("Successful")
+        else:
+            await ctx.reply("Unsuccessful")
+            
+
+
 class TestCommands(commands.Component):
     def __init__(self, bot: Bot):
         self.bot = bot
