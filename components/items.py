@@ -220,6 +220,9 @@ class RavenItemCommands(commands.Component):
             item_name (str): Name of an item to query.
         """
         item_name_full = " ".join(item_name)
+        if item_name_full == '':
+            await ctx.reply(f"Please include an item name.")
+            return None
         count = 1
         if item_name[-1].isdigit():
             item_name_full = " ".join(item_name[:-1])
