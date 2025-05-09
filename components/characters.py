@@ -837,7 +837,7 @@ class RavenCharacterCommands(commands.Component):
         include_combat_lvl = False
         for thing in skills_q_d.keys():
             if isinstance(thing, Skills):
-                if thing != Skills.All:
+                if thing not in (Skills.All, Skills.Melee):
                     skills[thing] = None
                 else:
                     skills[Skills.Attack] = None
@@ -849,14 +849,14 @@ class RavenCharacterCommands(commands.Component):
                 include_combat_lvl = True
             elif thing == 'combat':
                 for skill in ravenpy.fighting_skills:
-                    if skill != Skills.All:
+                    if skill not in (Skills.All, Skills.Melee):
                         skills[skill] = None
             elif thing == 'resource':
                 for skill in ravenpy.resource_skills:
                     skills[skill] = None
             elif thing == 'every':
                 for skill in ravenpy.Skills:
-                    if skill != Skills.All:
+                    if skill not in (Skills.All, Skills.Melee):
                         skills[skill] = None
         
         specified_skills = False
