@@ -351,7 +351,9 @@ class Character:
             self.exp_per_hour = 0
 
         self.training: Skills | None = None
-        self.island: Islands = _getitem_or_none(state['island'], Islands)
+        self.island: Islands = Islands.NoneIsland
+        if state['island'] != "None":
+            self.island: Islands = _getitem_or_none(state['island'], Islands)
         self.destination: Islands = _getitem_or_none(state['destination'], Islands)
         self.waiting_for_ferry: bool = self.destination and self.destination == self.island
         self.estimated_level_time: datetime = _call_or_none(state['estimatedTimeForLevelUp'], _parse_time)
@@ -506,6 +508,7 @@ class RavenNest:
         self._pass = password
         self._auth = ""
         self._baseURL = "https://www.ravenfall.stream/api"
+        self.is_authing: asyncio.Future = None
 
     async def login(self):
         await self._authenticate()
@@ -519,6 +522,12 @@ class RavenNest:
         _load_item_data(item_data)
 
     async def _authenticate(self):
+        if self.is_authing is None or self.is_authing.done():
+            self.is_authing = asyncio.get_running_loop().create_future()
+        elif not self.is_authing.done():
+            result = await self.is_authing
+            if result:
+                return
         async with aiohttp.ClientSession() as s:
             r = await s.post(
                 self._baseURL + "/auth",
@@ -531,10 +540,14 @@ class RavenNest:
         if '"token"' in response:
             self._auth = str(base64.b64encode(bytes(response,"utf-8")),'utf-8')
             print("RavenNest: Auth successful")
+            self.is_authing.set_result(True)
+            return True
         else:
             print("RavenNest: Auth unsuccessful!")
+            self.is_authing.set_result(False)
+            return False
 
-    async def _get(self,path):
+    async def _get(self, path, reauth=True):
         if not self._auth:
             print("RavenNest: Not authenticated! Call login() first!")
             return {}
@@ -549,8 +562,12 @@ class RavenNest:
             if r.status == 204:
                 return None
             elif r.status != 200:
-                print(f"WHAT (got {r.status})")
-                raise Exception("WHAT")
+                if reauth:
+                    await self._authenticate()
+                    await self._get(path, False)
+                else:
+                    print(f"WHAT (got {r.status})")
+                    raise Exception("WHAT")
             return await r.json()
 
     async def _items(self):
