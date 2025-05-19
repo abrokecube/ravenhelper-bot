@@ -87,8 +87,10 @@ async def search_user_characters(
 ) -> CharSearchResult | None:
     include_user = False
     args_filtered = [x for x in args if x]
+    force_username = False
     if args_filtered and is_twitch_username(args_filtered[0], True):
         include_user = True
+        force_username = args_filtered[0][0] == '@'
         args_filtered[0] = filter_username(args_filtered[0])
         
     tasks = [
@@ -117,33 +119,45 @@ async def search_user_characters(
     user_char_indexes = [str(x.index) for x in user_chars] if user_chars else []
     author_char_indexes = [str(x.index) for x in author_chars]
     if username and len(args_filtered) == 1:
-        result = split_arguments(args_filtered,
-            SplitWildcard(),
-            SplitQuery(author_char_names, optional=True),
-        )
+        char_q = ''
         index_q = ''
         rest_q = ''
-        user_q, char_q = [x.text for x in result]
-    elif username:
-        result = split_arguments(args_filtered,
-            SplitQuery(author_char_names, optional=True),
-            SplitQuery([username], optional=True),
-            SplitQuery(user_char_names, optional=True),
-            SplitQuery(user_char_indexes+author_char_indexes+['all'], optional=True),
-            SplitWildcard()
-        )
-        achar_q, user_q, uchar_q, index_q, rest_q = [x.text for x in result]
-        if (uchar_q and achar_q) or (achar_q and index_q == "all"):
-            achar_q = ''
-            user_q = args_filtered[0]
-        char_q = achar_q or uchar_q
-        if achar_q:
-            user_q = ''
-        # user_q, char_q, index_q, rest_q = [x.text for x in result]
-        rest_q_split = rest_q.split()
-        if rest_q_split and rest_q_split[0] == username:
+        if force_username:
             user_q = username
-            rest_q = " ".join(rest_q_split[1:])
+        else:
+            result = split_arguments(args_filtered,
+                SplitWildcard(),
+                SplitQuery(author_char_names, optional=True),
+            )
+            user_q, char_q = [x.text for x in result]
+    elif username:
+        if not force_username:
+            result = split_arguments(args_filtered,
+                SplitQuery(author_char_names, optional=True),
+                SplitQuery([username], optional=True),
+                SplitQuery(user_char_names, optional=True),
+                SplitQuery(user_char_indexes+author_char_indexes+['all'], optional=True),
+                SplitWildcard()
+            )
+            achar_q, user_q, uchar_q, index_q, rest_q = [x.text for x in result]
+            if (uchar_q and achar_q) or (achar_q and index_q == "all"):
+                achar_q = ''
+                user_q = args_filtered[0]
+            char_q = achar_q or uchar_q
+            if achar_q:
+                user_q = ''
+            rest_q_split = rest_q.split()
+            if rest_q_split and rest_q_split[0] == username:
+                user_q = username
+                rest_q = " ".join(rest_q_split[1:])
+        else:
+            result = split_arguments(args_filtered,
+                SplitWildcard(min_words=1),
+                SplitQuery(user_char_names, optional=True),
+                SplitQuery(user_char_indexes, optional=True),
+                SplitWildcard()
+            )
+            user_q, char_q, index_q, rest_q = [x.text for x in result]
     else:
         char_indexes = [str(x.index) for x in author_chars]
         result = split_arguments(args_filtered, 
