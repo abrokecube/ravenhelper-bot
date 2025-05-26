@@ -1,4 +1,6 @@
 # twitchio v3
+import aiohttp
+import aiohttp.client_exceptions
 from twitchio.ext import commands
 from twitchio.ext import routines
 from twitchio import eventsub
@@ -29,6 +31,7 @@ from components.help import HelpCommands
 from components.marketplace import MarketplaceCommands
 
 from components.reminders import ReminderCommands
+from components.alerts import AlertCommands
 
 load_dotenv()
 
@@ -61,6 +64,7 @@ class Bot(commands.Bot):
         await self.add_component(TestCommands(self))
         await self.add_component(ReminderCommands(self))
         
+        await self.add_component(AlertCommands(self))
 
         async with get_async_session() as session:
             result = await session.execute(
@@ -311,7 +315,10 @@ async def main() -> None:
     await create_all_tables()
     twitchio.utils.setup_logging(level=int(os.getenv("LOGGING_LEVEL")))
     rfapi = ravenpy.RavenNest(os.getenv("API_USER"), os.getenv("API_PASS"))
-    await rfapi.login()
+    try:
+        await rfapi.login()
+    except aiohttp.client_exceptions.ClientConnectorError:
+        pass
 
     async def runner() -> None:
         async with Bot() as bot:

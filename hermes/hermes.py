@@ -6,16 +6,18 @@ import random
 import string
 from datetime import datetime, timezone
 from enum import Enum
-from typing import Any, Dict, NamedTuple, TypedDict, Iterable
+from typing import Any, Dict, NamedTuple, TypedDict, Iterable, Callable, Literal, List
 import os
 from dotenv import load_dotenv
 import logging
+import time
 load_dotenv()
 
 TWITCH_PUBSUB = "wss://hermes.twitch.tv/v1?clientId=kimne78kx3ncx6brgo4mv6wki5h1ko"
+LOGGER = logging.getLogger("hermes")
 
 class SubTopic(Enum):
-    ADS = "ads"
+    ADS = "ads" # midroll_request
     AD_REFRESH = "ad-property-refresh"
     BIT_EVENTS = "channel-bit-events-public"
     BIT_REWARDS_CELEBRATIONS = "bits-rewards-celebration-v1"
@@ -28,8 +30,8 @@ class SubTopic(Enum):
     GUEST_STAR = "guest-star-channel-v1"
     HYPE_TRAIN = "hype-train-events-v2"
     PINS = "pinned-chat-updates-v1"
+    PREDICTIONS = "predictions-channel-v1"
     POLLS = "polls"
-    PREDICTIONS = "predictions-user-v1"
     RAIDS = "raid"
     SHOUTOUTS = "shoutout"
     SHARED_CHAT = "shared-chat-channel-v1"
@@ -49,6 +51,14 @@ def generate_timestamp():
 def generate_id(length=21):
     chars = string.ascii_letters + string.digits + "_-"
     return ''.join(random.choices(chars, k=length))
+
+class UnknownResponse(Exception):
+    def __init__(self, *args):
+        super().__init__(*args)
+
+class SubscriptionError(Exception):
+    def __init__(self, *args):
+        super().__init__(*args)
 
 class PartialUser(TypedDict):
     id: str
@@ -86,25 +96,183 @@ class PinnedMessage(TypedDict):
     pinned_by: PartialUser
     message: Message
 
+class UnpinnedMessage(TypedDict):
+    id: str
+    unpinned_by: PartialUser
+    reason: Literal["UNPIN"]
+    
+class PollSettings(TypedDict):
+    multi_choice: ...
+    bits_votes: ...
+    channel_points_votes: ...
+
+class PollVotes(TypedDict):
+    total: int
+    bits: int
+    channel_points: int
+    base: int
+
+class PollTokens(TypedDict):
+    bits: int
+    channel_points: int
+
+class PollChoice(TypedDict):
+    choice_id: str
+    title: str
+    votes: PollVotes
+    tokens: PollTokens
+    total_voters: int
+
+class Poll(TypedDict):
+    poll_id: str
+    owned_by: str
+    created_by: str
+    title: str
+    started_at: str
+    ended_at: str | None
+    ended_by: str | None
+    duration_seconds: int
+    settings: PollSettings
+    status: Literal["ACTIVE", "COMPLETED", "ARCHIVED"]
+    choices: Iterable[PollChoice]
+    votes: PollVotes
+    tokens: PollTokens
+    remaining_duration_milliseconds: int
+    top_contributor: str | None
+    top_bits_contributor: str | None
+    top_channel_points_contributor: str | None
+
+class Raid(TypedDict):
+    id: str
+    creator_id: str
+    source_id: str
+    target_id: str
+    target_login: str
+    target_display_name: str
+    target_profile_image: str
+    transition_jitter_seconds: int
+    force_raid_now_seconds: int
+    viewer_count: int
+
+class PredictionUser(TypedDict):
+    type: Literal['USER']
+    user_id: str
+    user_display_name: str
+    extension_client_id: None | str
+
+class PredictionResult(TypedDict):
+    type: Literal["WIN", "LOSE", "REFUND"]
+    points_won: int | None
+    is_acknowledged: bool
+
+class Predictor(TypedDict):
+    id: str
+    event_id: str
+    outcome_id: str
+    channel_id: str
+    points: int
+    predicted_at: str
+    updated_at: str
+    user_id: str
+    result: None  # TODO: erm
+    user_display_name: str    
+
+class PredictionBadge(TypedDict):
+    version: str
+    set_id: str
+
+class PredictionOutcome(TypedDict):
+    id: str
+    color: Literal["BLUE", "PINK"]
+    title: str
+    total_points: int
+    total_users: int
+    top_predictors: List[Predictor]
+    badge: PredictionBadge
+
+class Prediction(TypedDict):
+    id: str
+    channel_id: str
+    created_at: str
+    created_by: PredictionUser
+    ended_at: str
+    ended_by: PredictionUser | None
+    locked_at: str
+    locked_by: PredictionUser | None
+    outcomes: List[PredictionOutcome]
+    prediction_window_seconds: int
+    status: Literal["ACTIVE", "LOCKED", "RESOLVE_PENDING", "RESOLVED", "CANCEL_PENDING", "CANCELED"]
+    title: str
+    winning_outcome_id: str | None
+
+class ChannelUpdate(TypedDict):
+    channel_id: str
+    type: str
+    channel: str
+    old_status: str
+    status: str
+    old_game: str
+    game: str
+    old_game_id: int
+    game_id: int
+
 class TwitchUserPubSub:
     def __init__(self, token: str):
         self.uri = TWITCH_PUBSUB
+        self.reconnect_uri = None
         self.websocket = None
-        self.pending: Dict[id, asyncio.Future] = {}
-        self.subscriptions: Dict[id, callable] = {}
+        self.pending: Dict[str, asyncio.Future] = {}
+        self.subscriptions: Dict[str, Subscription] = {}
         self.token = token
+        self.last_connect_attempt = 0
+        self.connect_retry_count = 0
+        self.queue_resubscribe = False
+        self.keepalive_s = 15
+        self.reconnect_on_keepalive_fail_task: asyncio.Task = None
+        self.authenticated = False
+        
+        self.raids: set[str] = set()
+        self.predictions: Dict[str, str] = {}
 
-    async def connect(self):
-        self.websocket = await websockets.connect(self.uri)
+    async def event_started(self):
+        pass
+            
+    async def _connect(self):
+        uri = self.uri
+        if self.reconnect_uri is not None:
+            uri = self.reconnect_uri
+            LOGGER.info(f"Using provided reconnect uri...")
+        self.last_connect_attempt = time.time()
+        retries = 0
+        while True:
+            try:
+                self.websocket = await websockets.connect(uri)
+                break
+            except (OSError, websockets.InvalidHandshake, TimeoutError):
+                retry_time = min(retries ** 2.5, 600)
+                LOGGER.error(f"Websocket connection failed! Trying again in {retry_time}s")
+                await asyncio.sleep(retry_time)
+                retries += 1
+                pass
         asyncio.create_task(self._listen())  # Start listening in background
-        logging.info(f"Connected to {self.uri}")
-        await self.authenticate()
+        LOGGER.info(f"Connected to {uri}")
+        if self.reconnect_uri is not None:
+            self.reconnect_uri = None
+        else:
+            await self.authenticate()
+        if self.queue_resubscribe:
+            await self.resubscribe_all()
+            self.queue_resubscribe = False
 
     async def authenticate(self):
+        self.authenticated = False
+        LOGGER.info("Attempting to authenticate")
         r = await self.request("authenticate", {
             "token": self.token
         })
         if r['authenticateResponse']['result'] == "ok":
+            LOGGER.info("Successfully authenticated")
+            self.authenticated = True
             return
         else:
             raise Exception("Failed to authenticate!")
@@ -122,17 +290,24 @@ class TwitchUserPubSub:
         response = r['subscribeResponse']
         result_code = response['result']
         if result_code == "ok":
+            LOGGER.info(f"Subscribed to {topic_code}")
             pass
         elif result_code == "error":
             err_code = response['errorCode']
             if err_code == "SUB004":  # duplicate subscription
                 subscription_id = response["SUB004"]["existingSubscriptionId"]
-                logging.warning(f"Subscription {topic_code} already exists")
+                LOGGER.warning(f"Subscription {topic_code} already exists")
             else:
-                raise Exception(f"Error while subscribing... Recieved: {r}")
+                raise SubscriptionError(f"Error while subscribing... Recieved: {r}")
         else:
-            raise Exception(f"Error while subscribing (unknown response)... Recieved: {r}")
+            raise UnknownResponse(f"Error while subscribing (unknown response)... Recieved: {r}")
         self.subscriptions[subscription_id] = Subscription(subscription_id, channel_id, topic)
+    
+    async def resubscribe_all(self):
+        subscriptions = self.subscriptions.copy()
+        self.subscriptions.clear()
+        for subscription in subscriptions.values():
+            asyncio.create_task(self.subscribe(subscription.topic, subscription.channel_id))
 
     async def request(self, type: str, payload):
         cid = generate_id()
@@ -152,58 +327,213 @@ class TwitchUserPubSub:
     async def _send_ws(self, message):
         if self.websocket:
             await self.websocket.send(message)
-            logging.debug(f"Sent: {message}")
+            LOGGER.debug(f"Sent: {message}")
         else:
-            raise RuntimeError("WebSocket is not connected.")        
+            raise RuntimeError("WebSocket is not connected.")     
+        
+    async def keepalive_timeout(self):
+        await asyncio.sleep(self.keepalive_s)
+        LOGGER.info("Keepalive timed out")
+        await self.websocket.close()
 
     async def _listen(self):
         try:
             async for message in self.websocket:
                 data = json.loads(message)
+                if data['type'] != "keepalive":
+                    print(data)
+                self.reset_keepalive()
                 match data['type']:
                     case "welcome":
-                        self.uri = data['welcome']['recoveryUrl']
+                        self.reconnect_uri = data['welcome']['recoveryUrl']
+                        # self.uri = data['welcome']['recoveryUrl']
+                        self.keepalive_s = data['welcome']['keepaliveSec'] + 3
+                    case "reconnect":
+                        self.reconnect_uri = data['reconnect']['url']
+                        LOGGER.info("Twitch sent reconnect message, closing connection...")
+                        old_ws = self.websocket
+                        LOGGER.info("Opening new connection")
+                        await self._connect()
+                        LOGGER.info("Closing old connection")
+                        await old_ws.close()
+                        LOGGER.info("Connection closed manually")
+                        return
                     case "notification":
                         asyncio.create_task(self.handle_notification(data))
+                    case "subscribeResponse":
+                        pass
+                    case "keepalive":
+                        pass
+                    case "authenticateResponse":
+                        pass
+                    case _:
+                        print("--------- UNKNOWN MESSAGE: ")
+                        print(data)
                 
                 response_id = data.get("parentId")
                 if response_id and response_id in self.pending:
                     # Complete the waiting future
                     self.pending[response_id].set_result(data)
                     del self.pending[response_id]
-                    logging.debug(f"Received (+): {message}")
+                    LOGGER.debug(f"Received (+): {message}")
                 else:
-                    logging.debug(f"Received: {message}")
-        except websockets.ConnectionClosed:
-            logging.info("Connection closed")
-            # Optionally cancel all pending futures
-            for future in self.pending.values():
-                future.cancel()
+                    LOGGER.debug(f"Received: {message}")
+        except websockets.ConnectionClosed as e:
+            if e.code in (4123, 4122):  # "challenge expired" "invalid challenge"
+                self.uri = TWITCH_PUBSUB
+                self.queue_resubscribe = True
+        time_since = time.time() - self.last_connect_attempt
+        if time_since > 60:
+            self.connect_retry_count = 0
+        retry_time = min(self.connect_retry_count ** 2.5, 600)
+        LOGGER.info(f"Connection closed, reconnecting in {retry_time}s")
+        if not self.authenticated:
+            self.uri = TWITCH_PUBSUB
+            self.queue_resubscribe = True
+            LOGGER.info(f"Authentication was never completed")
+        await asyncio.sleep(retry_time)
+        self.connect_retry_count += 1
+        asyncio.create_task(self._connect())
 
+    def reset_keepalive(self):
+        if self.reconnect_on_keepalive_fail_task:
+            self.reconnect_on_keepalive_fail_task.cancel()
+        self.reconnect_on_keepalive_fail_task = asyncio.create_task(self.keepalive_timeout())
+    
     async def close(self):
         if self.websocket:
             await self.websocket.close()
-            logging.info("WebSocket closed.")
+            LOGGER.info("WebSocket closed.")
 
     async def run(self, reconnect_delay=5):
-        while True:
-            try:
-                await self.connect()
+        # while True:
+            # try:
+                await self._connect()
+                await self.event_started()
 
-                while True:
-                    await asyncio.sleep(3600)
-            except Exception as e:
-                logging.error(f"Connection error: {e}")
-                await asyncio.sleep(reconnect_delay)
+                # while True:
+                #     await asyncio.sleep(3600)
+            # except Exception as e:
+            #     LOGGER.error(f"Connection error: {e}")
+            #     await asyncio.sleep(reconnect_delay)
 
     async def handle_notification(self, data):
         subscription = self.subscriptions[data['notification']['subscription']['id']]
         pubsub = json.loads(data['notification']['pubsub'])
-        match pubsub['type']:
+        match pubsub['type'].lower():
             case "pin-message":
                 await self.event_message_pinned(subscription, pubsub['data'])
+            case "unpin-message":
+                await self.event_message_unpinned(subscription, pubsub['data'])
+            case "poll_create":
+                await self.event_poll_started(subscription, pubsub['data']['poll'])
+            case "poll_update":
+                await self.event_poll_updated(subscription, pubsub['data']['poll'])
+            case "poll_complete":
+                await self.event_poll_completed(subscription, pubsub['data']['poll'])
+            case "raid_update_v2":
+                raid: Raid = pubsub['raid']
+                await self.event_raid_updated(subscription, raid)
+                if not raid["source_id"] in self.raids:
+                    await self.event_raid_started(subscription, raid)
+                    self.raids.add(raid['source_id'])
+            case "raid_cancel_v2":
+                raid: Raid = pubsub['raid']
+                await self.event_raid_updated(subscription, pubsub['raid'])
+                if raid["source_id"] in self.raids:
+                    await self.event_raid_cancelled(subscription, raid)
+                    self.raids.remove(raid['source_id'])
+            case "raid_go_v2":
+                raid: Raid = pubsub['raid']
+                await self.event_raid_updated(subscription, pubsub['raid'])
+                if raid["source_id"] in self.raids:
+                    await self.event_raid_completed(subscription, raid)
+                    self.raids.remove(raid['source_id'])
+            case "event-created":
+                prediction: Prediction = pubsub['data']['event']
+                await self.event_prediction_started(subscription, prediction)
+                self.predictions[prediction["id"]] = prediction["status"]
+            case "event-updated":
+                prediction: Prediction = pubsub['data']['event']
+                if not prediction["id"] in self.predictions:
+                    self.predictions[prediction["id"]] = None
+                aga = False
+                if self.predictions[prediction["id"]] != prediction['status']:
+                    ended = False
+                    match prediction['status']:
+                        case "ACTIVE":
+                            ...
+                        case "LOCKED":
+                            await self.event_prediction_locked(subscription, prediction)
+                        case "RESOLVE_PENDING":
+                            if prediction["outcomes"][0]["top_predictors"][0]["result"] is not None:
+                                await self.event_prediction_resolved(subscription, prediction)
+                            else:
+                                aga = True
+                        case "RESOLVED":
+                            ended = True
+                        case "CANCEL_PENDING":  
+                            await self.event_prediction_cancelled(subscription, prediction)
+                        case "CANCELED":
+                            ended = True
+                        case _:
+                            prediction['title'] += f" ( @abrokecube unknown prediction status: {prediction['status']} )"
+                            LOGGER.warning(f"UNKNOWN PREDICTION STATUS: {prediction['status']}")
+                    if not ended:
+                        if not aga:
+                            self.predictions[prediction["id"]] = prediction['status']
+                    else:
+                        self.predictions.pop(prediction["id"])
+                await self.event_prediction_updated(subscription, prediction)
+            case "broadcast_settings_update":
+                await self.event_channel_updated(subscription, pubsub)
+            case _:
+                print("--------- UNKNOWN NOTIFICATION: ")
+                print(data)
     
     async def event_message_pinned(self, subscription: Subscription, payload: PinnedMessage):
+        pass
+
+    async def event_message_unpinned(self, subscription: Subscription, payload: UnpinnedMessage):
+        pass
+
+    async def event_poll_started(self, subscription: Subscription, payload: Poll):
+        pass
+
+    async def event_poll_updated(self, subscription: Subscription, payload: Poll):
+        pass
+
+    async def event_poll_completed(self, subscription: Subscription, payload: Poll):
+        pass
+    
+    async def event_raid_started(self, subscription: Subscription, payload: Raid):
+        pass
+
+    async def event_raid_updated(self, subscription: Subscription, payload: Raid):
+        pass
+
+    async def event_raid_cancelled(self, subscription: Subscription, payload: Raid):
+        pass
+
+    async def event_raid_completed(self, subscription: Subscription, payload: Raid):
+        pass
+    
+    async def event_prediction_started(self, subscription: Subscription, payload: Prediction):
+        pass
+        
+    async def event_prediction_updated(self, subscription: Subscription, payload: Prediction):
+        pass
+
+    async def event_prediction_locked(self, subscription: Subscription, payload: Prediction):
+        pass
+
+    async def event_prediction_cancelled(self, subscription: Subscription, payload: Prediction):
+        pass
+
+    async def event_prediction_resolved(self, subscription: Subscription, payload: Prediction):
+        pass
+    
+    async def event_channel_updated(self, subscription: Subscription, payload: ChannelUpdate):
         pass
 
 async def main():
