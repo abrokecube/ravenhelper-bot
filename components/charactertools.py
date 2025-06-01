@@ -25,14 +25,14 @@ class RavenCharacterTools(commands.Component):
             return
         user_chars = result.chars
         if len(result.leftover_args) == 0:
-            await ctx.reply("uuh Missing recipient argument.")
+            await ctx.send("uuh Missing recipient argument.")
             return
         
         character = user_chars[0]
         target_user = utils.filter_username(result.leftover_args[0])
         
         if not utils.is_twitch_username(target_user):
-            await ctx.reply("uuh Recipient is not a valid Twitch username.")
+            await ctx.send("uuh Recipient is not a valid Twitch username.")
             return
         
         out_commands = []
@@ -44,15 +44,15 @@ class RavenCharacterTools(commands.Component):
             )
 
         if len(out_commands) == 0:
-            await ctx.reply("uuh This character has no items!")
+            await ctx.send("uuh This character has no items!")
             return
         
         out_str = "\n".join(out_commands)
         text_url = await utils.upload_to_pastes(out_str)
         if not text_url:
-            await ctx.reply("bruh Failed to upload text to pastes.")
+            await ctx.send("bruh Failed to upload text to pastes.")
         else:
-            await ctx.reply(
+            await ctx.send(
                 f"Gift commands for {utils.get_char_identifier(character)} to {utils.unping(target_user)}: {text_url}"
             )
 

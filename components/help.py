@@ -38,7 +38,7 @@ class HelpCommands(commands.Component):
                 commands_out.append(", ".join(sorted(tuple(comms))))
             # command_list = sorted([x.name for x in set(self.bot.commands.values())])
             bot_commands = " | ".join(commands_out)
-            await ctx.reply(f"Commands: {bot_commands}")
+            await ctx.send(f"Commands: {bot_commands}")
             return
 
         command_class = self.bot.commands[arg_command]
@@ -114,7 +114,7 @@ class HelpCommands(commands.Component):
                 command_arguments[param.name] = param_desc
         
         if arg_parameter in command_arguments:
-            await ctx.reply(command_arguments[arg_parameter])
+            await ctx.send(command_arguments[arg_parameter])
             return
         
         name_and_usage = " ".join(nm_out)
@@ -140,5 +140,5 @@ class HelpCommands(commands.Component):
             restrictions = f"Limited to: {', '.join(restr_to)}"
         
         response = strjoin(' – ', name_and_usage, description, subcommands, restrictions, aliases)
-        await ctx.reply(response)
+        await ctx.send(response)
         ...

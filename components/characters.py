@@ -422,7 +422,7 @@ class RavenCharacterCommands(commands.Component):
             char_name = utils.unping(utils.truncate_sentence(char.identifier, 40))
             out_str.append(f"{char_name} {index_and_combat_level}: https://www.ravenfall.stream/inspect/{char.id}")
         if len(out_str) == 0:
-            await ctx.reply("This user has no characters.")
+            await ctx.send("This user has no characters.")
             return
         out = " • ".join(out_str)
         await ctx.send(f"/me {out}")
@@ -469,7 +469,7 @@ class RavenCharacterCommands(commands.Component):
         user_name = utils.unping(user_chars[0].user_name)
                     
         char_trainings = [f"{utils.get_char_identifier(x)} is training {x.training.name}" for x in user_chars]
-        await ctx.reply(
+        await ctx.send(
             f"{user_name} ✦ {utils.strjoin(' – ', *char_trainings)}",
             me=True
         )
@@ -529,7 +529,7 @@ class RavenCharacterCommands(commands.Component):
             )
             char_trainings.append(summary)
             
-        await ctx.reply(
+        await ctx.send(
             f"{user_name} ✦ {utils.strjoin(' – ', *char_trainings)}",
             me=True
         )
@@ -571,7 +571,7 @@ class RavenCharacterCommands(commands.Component):
             char_strs.append(
                 f"{char_name}: {utils.strjoin(', ', *char_statuses, before_end=' and ').capitalize()}"
             )
-        await ctx.reply(
+        await ctx.send(
             f"Auto status for {user_name} ✦ {utils.strjoin(' • ', *char_strs)}",
             me=True
         )
@@ -603,7 +603,7 @@ class RavenCharacterCommands(commands.Component):
                 f"{char_name}: {utils.strjoin(', ', *char_statuses, before_end=' and ')}"
             )
 
-        await ctx.reply(
+        await ctx.send(
             f"Active status effects for {user_name} ✦ {utils.strjoin(' • ', *char_strs)}",
             me=True
         )
@@ -641,7 +641,7 @@ class RavenCharacterCommands(commands.Component):
             char_strs.append(
                 f"{char_name}: {char_str}"
             )
-        await ctx.reply(
+        await ctx.send(
             f"Rested status for {user_name} ✦ {utils.strjoin(' • ', *char_strs)}",
             me=True
         )
@@ -682,7 +682,7 @@ class RavenCharacterCommands(commands.Component):
             char_strs.append(
                 f"{char_name}: {char_str}"
             )
-        await ctx.reply(
+        await ctx.send(
             f"Last update times for {user_name} ✦ {utils.strjoin(' • ', *char_strs)}",
             me=True
         )
@@ -712,7 +712,7 @@ class RavenCharacterCommands(commands.Component):
     #         self._training_currently_calculating.add(calc_key)
             
     #     char_trainings = [f"{get_char_identifier(x)} is training {x.training.name}" for x in user_chars]
-    #     await ctx.reply(
+    #     await ctx.send(
     #         f"{user_name} ✦ {utils.strjoin(' – ', *char_trainings)} ✦ {end_msg}",
     #         me=True
     #     )
@@ -778,7 +778,7 @@ class RavenCharacterCommands(commands.Component):
     #             f"{char_identifier}: {stat.skill.name} {stat.level} " \
     #             f"({stat.level_exp/stat.total_exp_for_level:.1%}) – Level in {time_to_level}"
     #         )
-    #     await ctx.reply(
+    #     await ctx.send(
     #         f"Estimated training time to next level for {user_name} ✦ " \
     #         f"{utils.strjoin(' ✦ ', *char_estimates)}",
     #         me=True
@@ -864,7 +864,7 @@ class RavenCharacterCommands(commands.Component):
             ...
         elif not skills and len(user_chars) > 1:
             char_names = [x.name for x in user_chars]
-            await ctx.reply(f"uuh Please specify a character name, index or skill. " \
+            await ctx.send(f"uuh Please specify a character name, index or skill. " \
                 f"(Characters: {utils.strjoin(', ', *char_names, before_end=' and ')}.)"
             )
             return
@@ -936,7 +936,7 @@ class RavenCharacterCommands(commands.Component):
                 ' ✦ ', total_levels
             )
         for text in out_strings:
-            await ctx.reply(text, me=True)
+            await ctx.send(text, me=True)
 
     @commands.command(aliases=('charitem','count'))
     async def items(self, ctx: commands.Context, *args):
@@ -947,7 +947,7 @@ class RavenCharacterCommands(commands.Component):
             items (str): Item name(s) to check. Up to 10 item names will be accepted.
         """
         if not args:
-            await ctx.reply(f"uuh Please provide one or more item names")
+            await ctx.send(f"uuh Please provide one or more item names")
             return
         args_filtered = list(args)
         user_q = ''
@@ -990,7 +990,7 @@ class RavenCharacterCommands(commands.Component):
                 item_strs.append(iresult)
             if item_strs:
                 out_msg = f"{out_msg} (Did you mean {', '.join(item_strs)}?)"
-            await ctx.reply(out_msg)
+            await ctx.send(out_msg)
             return
         items_q = {}
         for thing in [x.text for x in result[1::2] if x.text]:
@@ -1018,5 +1018,5 @@ class RavenCharacterCommands(commands.Component):
             ' ✦ ', *utils.strjoin_list(' • ', *items_str)
         )
         for thing in out_text:
-            await ctx.reply(thing, me=True)
+            await ctx.send(thing, me=True)
             

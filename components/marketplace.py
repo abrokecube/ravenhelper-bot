@@ -26,7 +26,7 @@ class MarketplaceCommands(commands.Component):
         else:
             raise ValueError("item_name was not a valid type!")
         if item_name_full == '':
-            await ctx.reply(f"Please include an item name.")
+            await ctx.send(f"Please include an item name.")
             return None
         search_result = thefuzz.process.extract(item_name_full, ravenpy.get_all_item_names(), limit=7, scorer=thefuzz.fuzz.ratio)
         result, score = search_result[0]
@@ -35,9 +35,9 @@ class MarketplaceCommands(commands.Component):
         else:
             a = ', '.join([x[0] for x in search_result if x[1] > MIN_SEARCH_THRESHOLD])
             if not a:
-                await ctx.reply(f"No results for '{item_name_full}'")
+                await ctx.send(f"No results for '{item_name_full}'")
             else:
-                await ctx.reply(f"Couldn't find '{item_name_full}', did you mean {a}?")
+                await ctx.send(f"Couldn't find '{item_name_full}', did you mean {a}?")
             return None
 
     @commands.group(aliases=('marketplace', 'buy'), invoke_fallback=True)
@@ -62,7 +62,7 @@ class MarketplaceCommands(commands.Component):
         market_items = await self.rf_api.get_marketplace()
         item_results = list(filter(lambda x: x.item == item, market_items))
         if len(item_results) == 0:
-            await ctx.reply(f"{item.name} was not found in the marketplace.", me=True)
+            await ctx.send(f"{item.name} was not found in the marketplace.", me=True)
             return
         
         items_sorted = sorted(item_results, key=lambda x: x.amount, reverse=True)
@@ -82,7 +82,7 @@ class MarketplaceCommands(commands.Component):
             items_str_list.append(
                 f'{market_item.price_per_item:,}c ({market_item.amount:,}, {age_formatted} ago{item_by})'
             )
-        await ctx.reply(
+        await ctx.send(
             f"{pl(len(items_sorted), 'listing')} of {item.name} found: " \
             f"{strjoin(', ', *items_str_list)}",
             me=True
@@ -153,10 +153,10 @@ class MarketplaceCommands(commands.Component):
         items_per_page = 5
         max_pages = math.ceil(len(market_items)/items_per_page)
         if page < 1:
-            await ctx.reply("uuh Page number starts at 1")
+            await ctx.send("uuh Page number starts at 1")
             return
         elif page > max_pages:
-            await ctx.reply(f"uuh There are only {max_pages} pages")
+            await ctx.send(f"uuh There are only {max_pages} pages")
             return
         
         sorted_sliced = sorted_items[(page-1)*items_per_page:page*items_per_page]
@@ -177,4 +177,4 @@ class MarketplaceCommands(commands.Component):
             item_str += f"{time_delta} ago{item_by})"
             items_str.append(item_str)
         out_str = f"{title} ✦ Page {page}/{max_pages} ✦ {' • '.join(items_str)}"
-        await ctx.reply(out_str, me=True)
+        await ctx.send(out_str, me=True)

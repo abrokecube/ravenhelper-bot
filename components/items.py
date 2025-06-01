@@ -93,7 +93,7 @@ class RavenItemCommands(commands.Component):
         else:
             raise ValueError("item_name was not a valid type!")
         if item_name_full == '':
-            await ctx.reply(f"Please include an item name.")
+            await ctx.send(f"Please include an item name.")
             return None
         search_result = thefuzz.process.extract(item_name_full, ravenpy.get_all_item_names(), limit=7, scorer=thefuzz.fuzz.ratio)
         result, score = search_result[0]
@@ -102,9 +102,9 @@ class RavenItemCommands(commands.Component):
         else:
             a = ', '.join([x[0] for x in search_result if x[1] > MIN_SEARCH_THRESHOLD])
             if not a:
-                await ctx.reply(f"No results for '{item_name_full}'")
+                await ctx.send(f"No results for '{item_name_full}'")
             else:
-                await ctx.reply(f"Couldn't find '{item_name_full}', did you mean {a}?")
+                await ctx.send(f"Couldn't find '{item_name_full}', did you mean {a}?")
             return None
 
     @commands.command(aliases=('info',))
@@ -221,7 +221,7 @@ class RavenItemCommands(commands.Component):
         """
         item_name_full = " ".join(item_name)
         if item_name_full == '':
-            await ctx.reply(f"Please include an item name.")
+            await ctx.send(f"Please include an item name.")
             return None
         count = 1
         if item_name[-1].isdigit():
@@ -320,9 +320,9 @@ class RavenItemCommands(commands.Component):
         search_result = thefuzz.process.extract(item_name_full, ravenpy.get_all_item_names(), limit=25, scorer=thefuzz.fuzz.ratio)
         results = ", ".join([x[0] for x in search_result if x[1] > MIN_SEARCH_THRESHOLD])
         if len(results) == 0:
-            await ctx.reply(f"No results for '{item_name_full}.'")
+            await ctx.send(f"No results for '{item_name_full}.'")
             return
-        await ctx.reply(f"Search results for '{item_name_full}': {results}")
+        await ctx.send(f"Search results for '{item_name_full}': {results}")
 
     @commands.command(aliases=('worth','vendor',))
     async def value(self, ctx: commands.Context, *item_name):
@@ -339,15 +339,15 @@ class RavenItemCommands(commands.Component):
             item = await self.search_item(ctx, item_name_full)
         if not item:
             return
-        await ctx.reply(f"{item.name} can be vendored for {item.sell_price} coins.", me=True)
+        await ctx.send(f"{item.name} can be vendored for {item.sell_price} coins.", me=True)
 
     @is_bot_owner()
     @commands.command(aliases=("reloaditems","refreshitems"))
     async def fetchitems(self, ctx: commands.Context):
         """Refreshes the internal item database."""
-        await ctx.reply(f"Fetching items...", me=True)
+        await ctx.send(f"Fetching items...", me=True)
         await self.rf_api.refresh_items()
-        await ctx.reply(f"Successfully refetched {len(ravenpy.get_all_items())} items", me=True)
+        await ctx.send(f"Successfully refetched {len(ravenpy.get_all_items())} items", me=True)
 
     # @is_bot_owner()
     # @commands.command()

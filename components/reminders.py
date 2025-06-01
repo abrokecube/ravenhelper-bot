@@ -104,7 +104,7 @@ class ReminderCommands(commands.Component):
         time = ""
         description = ""
         if not args:
-            await ctx.reply(
+            await ctx.send(
                 "/me Enter a duration."
             )
             return
@@ -113,12 +113,12 @@ class ReminderCommands(commands.Component):
         
         seconds = parse_time(time)
         if seconds <= 0:
-            await ctx.reply(
+            await ctx.send(
                 "/me uuh Invalid duration."
             )
             return
         if seconds < 10:
-            await ctx.reply(
+            await ctx.send(
                 "/me uuh Duration must be 10 seconds or longer."
             )
             return
@@ -141,11 +141,11 @@ class ReminderCommands(commands.Component):
         self.active_reminders_user[key].append(reminder)
         
         if description:
-            await ctx.reply(
+            await ctx.send(
                 f"/me Will remind you about \"{description}\" in {format_seconds(seconds, TimeSize.LONG, include_zero=False)}."
             )
         else:
-            await ctx.reply(
+            await ctx.send(
                 f"/me Will remind you in {format_seconds(seconds, TimeSize.LONG, include_zero=False)}."
             )
             
@@ -154,7 +154,7 @@ class ReminderCommands(commands.Component):
         key = f"{ctx.broadcaster.name}_{ctx.author.id}"
         user_reminders = self.active_reminders_user.get(key)
         if not user_reminders:
-            await ctx.reply(
+            await ctx.send(
                 f"You have no reminders in this channel.",
                 me=True
             )
@@ -167,7 +167,7 @@ class ReminderCommands(commands.Component):
                 reminders.append(
                     f"{name} in {time_left}"
                 )
-            await ctx.reply(
+            await ctx.send(
                 f"You have {pl(len(user_reminders), 'active reminder')} in this channel: "
                 f"{strjoin(', ', *reminders, before_end=' and ')}.",
                 me=True

@@ -52,26 +52,26 @@ class CharSearchResult:
 
 async def get_user_characters(rfapi: ravenpy.RavenNest, ctx: commands.Context, user: str=''):
     if user and not is_twitch_username(user, True):
-        await ctx.reply(f"uuh {user} is not a valid username.")
+        await ctx.send(f"uuh {user} is not a valid username.")
         return None
     user = filter_username(user)
     if not user:
         user_chars = await _get_characters(ctx.bot, rfapi, user_id=ctx.author.id)
         if user_chars is None:
-            await ctx.reply(f"uuh You dont exist??? om")
+            await ctx.send(f"uuh You dont exist??? om")
             return None
         elif len(user_chars) == 0:
-            await ctx.reply(f"YEP You have no characters.")
+            await ctx.send(f"YEP You have no characters.")
             return None
         else:
             return user_chars
     else:
         user_chars = await _get_characters(ctx.bot, rfapi, user_name=user)
         if user_chars is None:
-            await ctx.reply(f"YEP User '{user}' not found.")
+            await ctx.send(f"YEP User '{user}' not found.")
             return None
         elif len(user_chars) == 0:
-            await ctx.reply(f"YEP User '{user}' has no characters.")
+            await ctx.send(f"YEP User '{user}' has no characters.")
             return None
         else:
             return user_chars
@@ -104,10 +104,10 @@ async def search_user_characters(
     
     if not args_filtered:
         if not author_chars:
-            await ctx.reply(f"uuh You have no characters.")
+            await ctx.send(f"uuh You have no characters.")
             return None
         if len(author_chars) > 1 and single_char_only:
-            await ctx.reply(f"uuh Please specify a character name or index. " \
+            await ctx.send(f"uuh Please specify a character name or index. " \
             f"You have {strjoin(', ', *author_char_names, before_end=' and ')}.")
             return None
         return CharSearchResult(author_chars, '')
@@ -179,7 +179,7 @@ async def search_user_characters(
         
     if user_q:
         if not user_chars:
-            await ctx.reply(
+            await ctx.send(
                 f"YEP '{username}' has no characters."
             )
             return None
@@ -188,7 +188,7 @@ async def search_user_characters(
         elif index_q:
             out_chars = [x for x in user_chars if x.index == int(index_q)]
             if not out_chars:
-                await ctx.reply(
+                await ctx.send(
                     f"uuh User {username} doesn't have Character {index_q}. " \
                     f"They do have {strjoin(', ', *user_char_names, before_end=' and ')}."
                 )
@@ -196,13 +196,13 @@ async def search_user_characters(
         elif all_chars_fallback:
             out_chars = user_chars
         elif rest_q:
-            await ctx.reply(
+            await ctx.send(
                 f"uuh No character by {username} named '{rest_q}'. " \
                 f"They do have {strjoin(', ', *user_char_names, before_end=' and ')}."
             )
             return None
         elif len(user_chars) > 1 and single_char_only:
-            await ctx.reply(f"uuh Please specify a character name or index. " \
+            await ctx.send(f"uuh Please specify a character name or index. " \
                 f"{username} has {strjoin(', ', *user_char_names, before_end=' and ')}."
             )
             return None
@@ -210,7 +210,7 @@ async def search_user_characters(
             out_chars = user_chars
     else:
         if not author_chars:
-            await ctx.reply(
+            await ctx.send(
                 f"YEP You have no characters."
             )
             return None
@@ -219,7 +219,7 @@ async def search_user_characters(
         elif index_q:
             out_chars = [x for x in author_chars if x.index == int(index_q)]
             if not out_chars:
-                await ctx.reply(
+                await ctx.send(
                     f"uuh You don't have Character {index_q}. " \
                     f"You do have {strjoin(', ', *author_char_names, before_end=' and ')}."
                 )
@@ -227,13 +227,13 @@ async def search_user_characters(
         elif all_chars_fallback:
             out_chars = author_chars
         elif rest_q:
-            await ctx.reply(
+            await ctx.send(
                 f"uuh You don't have a character named '{rest_q}'. " \
                 f"You have {strjoin(', ', *author_char_names, before_end=' and ')}."
             )
             return None
         elif len(author_chars) > 1 and single_char_only:
-            await ctx.reply(f"uuh Please specify a character name or index. " \
+            await ctx.send(f"uuh Please specify a character name or index. " \
                 f"You have {strjoin(', ', *author_char_names, before_end=' and ')}."
             )
             return None
@@ -242,7 +242,7 @@ async def search_user_characters(
     if single_char_only and len(out_chars) != 1:
         assert(False)
     if len(out_chars) == 0:
-        await ctx.reply("uuh Ravenfall servers may not be responding.")
+        await ctx.send("uuh Ravenfall servers may not be responding.")
         return 
     return CharSearchResult(out_chars, rest_q)
     

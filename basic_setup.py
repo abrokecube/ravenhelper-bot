@@ -56,17 +56,17 @@ class Bot(commands.Bot):
             return None
         elif isinstance(payload.exception, commands.exceptions.CommandInvokeError):
             if isinstance(payload.exception.original, AssertionError):
-                await payload.context.reply("bruh Error...")
+                await payload.context.send("bruh Error...")
             elif isinstance(payload.exception.original, twitchio.exceptions.HTTPException):
                 if payload.exception.original.status == 401:
                     if not self._is_reloading_tokens:
                         await self.reload_tokens()
                     await self.event_message(payload.context.message)
             else:
-                await payload.context.reply("bruh Error.")
+                await payload.context.send("bruh Error.")
             return await super().event_command_error(payload)
         else:
-            # await payload.context.reply("bruh Error.")
+            # await payload.context.send("bruh Error.")
             return await super().event_command_error(payload)
     
     @routines.routine(delta=timedelta(days=1), wait_first=True, wait_remainder=True)
