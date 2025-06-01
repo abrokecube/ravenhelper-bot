@@ -185,12 +185,12 @@ class BotUtilityCommands(commands.Component):
         """Shows the bot's uptime."""
         current_time = datetime.now()
         uptime_str = utils.format_timedelta(current_time - self.start_time, utils.TimeSize.LONG)
-        await ctx.reply(f"/me Bot has been running for {uptime_str}.")
+        await ctx.send(f"/me Bot has been running for {uptime_str}.")
         
     @commands.command(aliases=('ping',))
     async def pong(self, ctx: commands.Context):
         """Pong!"""
-        await ctx.reply("Pong! 🏓")
+        await ctx.send("Pong! 🏓")
 
 
 class BotSettingsCommands(commands.Component):
