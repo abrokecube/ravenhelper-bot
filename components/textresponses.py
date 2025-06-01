@@ -78,7 +78,7 @@ class RavenTextCommands(commands.Component):
         
         if len(msg_postfix) > 0:
             msg_postfix = " | " + msg_postfix
-        await ctx.reply(f"/me Minimum level to equip {msg_prefix} Bronze/Iron - 1 • Steel - 10 • Black - 20 • Mithril - 30 • " \
+        await ctx.send(f"/me Minimum level to equip {msg_prefix} Bronze/Iron - 1 • Steel - 10 • Black - 20 • Mithril - 30 • " \
                         f"Adamantite - 50 • Rune - 70 • Dragon - 90 • Abraxas - 120 • " \
                         f"Phantom - 150 • Lionite/Lionsbane - 200 • Ethereum/Ether - 280 • Ancient - 340 • " \
                         f"Atlarus - 400{msg_postfix} | For elder equipment (level 500+), use {ctx.prefix}e{ctx.invoked_with}")
@@ -157,18 +157,18 @@ class RavenTextCommands(commands.Component):
         
         if len(msg_postfix) > 0:
             msg_postfix = " | " + msg_postfix
-        await ctx.reply(f"/me Minimum level to equip {msg_prefix} E.Bronze - 500 • E.Iron - 525 • " \
+        await ctx.send(f"/me Minimum level to equip {msg_prefix} E.Bronze - 500 • E.Iron - 525 • " \
                         "E.Steel - 550 • E.󠀀Black - 600 • E.Mithril - 650 • E.Adamantite - 700 • E.Rune - 750 • " \
                         "E.Dragon - 800 • E.Abraxas - 825 • E.Phantom - 850 • E.Lionsbane - 875 • " \
                         f"E.Ether - 900 • E.Ancient - 950 • E.Atlarus - 999{msg_postfix}")
 
     @commands.command(aliases=('skill','train'))
     async def skills(self, ctx: commands.Context):
-        await ctx.reply("/me Skills you can train: Woodcutting, Farming, Crafting, Cooking, Fishing, Alchemy, Gathering, Mining, Health, Attack, Defense, Strength, Magic, Ranged, Healing and Sailing")
+        await ctx.send("/me Skills you can train: Woodcutting, Farming, Crafting, Cooking, Fishing, Alchemy, Gathering, Mining, Health, Attack, Defense, Strength, Magic, Ranged, Healing and Sailing")
 
     @commands.command(name="islands", aliases=("destination", "destinations"))
     async def islands(self, ctx: commands.Context):
-        await ctx.reply("/me 🏝️ Destinations: Home - 1-99 • Away - 50-150 • Ironhill - 100-300 • " \
+        await ctx.send("/me 🏝️ Destinations: Home - 1-99 • Away - 50-150 • Ironhill - 100-300 • " \
                         "Kyo - 200-400 • Heim - 300-700 • Atria - 500-900 • Eldara - 700+")
 
     @commands.command(name="otherskills",aliases=("mining", "crafting", "fishing", "woodcutting", "cooking", "farming", "gathering", "alchemy"))
@@ -185,26 +185,26 @@ class RavenTextCommands(commands.Component):
             postfix = f" | To see fish catching levels, use {ctx.prefix}fish"
         elif command == "woodcutting":
             postfix = f" | To see tree chopping levels, use {ctx.prefix}wood"
-        await ctx.reply(f"/me 🏝️ Islands and level ranges to train {command.title()}: " \
+        await ctx.send(f"/me 🏝️ Islands and level ranges to train {command.title()}: " \
                         "Home - 1-99 • Away - 50-150 • Ironhill - 100-300 • " \
                         f"Kyo - 200-400 • Heim - 300-700 • Atria - 500-900 • Eldara - 700+{postfix}")
 
     @commands.command(name="combatskills",aliases=("combat", "attack", "atk", "defense", "strength", "magic", "ranged", "healing"))
     async def combat(self, ctx: commands.Context):
-        await ctx.reply("/me 🏝️ You can train any combat skill if your Combat Level is within these ranges for each island: " \
+        await ctx.send("/me 🏝️ You can train any combat skill if your Combat Level is within these ranges for each island: " \
                         "Home - 1-99 • Away - 50-150 • Ironhill - 100-300 • Kyo - 200-400 — " \
                         "For training on the following islands, the combat skill itself needs to meet the level requirement: " \
                         f"Heim - 300-700 • Atria - 500-900 • Eldara - 700+")
 
     @commands.command()
     async def sailing(self, ctx: commands.Context):
-        await ctx.reply("/me ⛵ Train Sailing by sailing between islands or by sailing with no destination.")
+        await ctx.send("/me ⛵ Train Sailing by sailing between islands or by sailing with no destination.")
 
     @commands.command()
     async def enchanting(self, ctx: commands.Context):
-        await ctx.reply("/me 🔮 Enchanting is a clan skill, meaning the only requirement for enchanting is to be a part of a clan.")
+        await ctx.send("/me 🔮 Enchanting is a clan skill, meaning the only requirement for enchanting is to be a part of a clan.")
 
     @commands.command()
     async def slayer(self, ctx: commands.Context):
-        await ctx.reply("/me ⚔️ Train Slayer by joining Raids and Dungeons.")
+        await ctx.send("/me ⚔️ Train Slayer by joining Raids and Dungeons.")
 

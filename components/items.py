@@ -67,23 +67,23 @@ class RavenItemCommands(commands.Component):
 
     @commands.command(aliases=("woodcuttingitems","chop"))
     async def wood(self, ctx: commands.Context):
-        await ctx.reply(f"/me 🌳 Woodcutting level required to obtain logs: {get_wood()}")
+        await ctx.send(f"/me 🌳 Woodcutting level required to obtain logs: {get_wood()}")
     
     @commands.command(aliases=("fishes","fishingitems"))
     async def fish(self, ctx: commands.Context):
-        await ctx.reply(f"/me 🎣 Fishing level required to obtain fish: {get_fish()}")
+        await ctx.send(f"/me 🎣 Fishing level required to obtain fish: {get_fish()}")
 
     @commands.command(aliases=("crop","farmingitems","farm"))
     async def crops(self, ctx: commands.Context):
-        await ctx.reply(f"/me 🌾 Farming level required to obtain crops: {get_crops()}")
+        await ctx.send(f"/me 🌾 Farming level required to obtain crops: {get_crops()}")
 
     @commands.command(aliases=("foraging","gatheringitems","gather"))
     async def forage(self, ctx: commands.Context):
-        await ctx.reply(f"/me 🧺 Gathering level required to obtain items: {get_forage()}")
+        await ctx.send(f"/me 🧺 Gathering level required to obtain items: {get_forage()}")
 
     @commands.command(aliases=("ore","bar","bars","miningitems","mine"))
     async def ores(self, ctx: commands.Context):
-        await ctx.reply(f"/me ⛏️ Mining level required to obtain ores: {get_ores()}")
+        await ctx.send(f"/me ⛏️ Mining level required to obtain ores: {get_ores()}")
 
     async def search_item(self, ctx: commands.Context, query: str | Iterable[str]) -> ravenpy.Item | None:
         if isinstance(query, str):
@@ -210,7 +210,7 @@ class RavenItemCommands(commands.Component):
                 crafting_level, craft_fail_item, crafting, enchants, raid_drop, soulbound, value
             )
         for out_str in out_strs:
-            await ctx.reply(f"/me {out_str}")
+            await ctx.send(f"/me {out_str}")
 
     @commands.command(aliases=('requirements','craft','reqs'))
     async def req(self, ctx: commands.Context, *item_name: str):
@@ -285,7 +285,7 @@ class RavenItemCommands(commands.Component):
             ' • ', item.name, level, drop_level, cooldown_time, crafting_level,
             crafting, craft_fail_item, raid_drop, value
         )
-        await ctx.reply(f"/me {out_str}")
+        await ctx.send(f"/me {out_str}")
 
     @commands.command(aliases=("usage","use"))
     async def uses(self, ctx: commands.Context, *item_name: str):
@@ -299,7 +299,7 @@ class RavenItemCommands(commands.Component):
             return
         
         if len(item.used_in) == 0:
-            await ctx.reply(f"/me {item.name} isn't used in any recipes.")
+            await ctx.send(f"/me {item.name} isn't used in any recipes.")
             return
         item_list = sorted([x.name for x in item.used_in])
         out_str = ', '.join(item_list[:-1])
@@ -307,7 +307,7 @@ class RavenItemCommands(commands.Component):
             out_str += f" and {item_list[-1]}"
         else:
             out_str += item_list[-1]
-        await ctx.reply(f"/me {item.name} is used in creating {out_str}")
+        await ctx.send(f"/me {item.name} is used in creating {out_str}")
     
     @commands.command(aliases=("itemsearch","find"))
     async def search(self, ctx: commands.Context, *item_name: str):

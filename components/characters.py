@@ -274,7 +274,7 @@ class RavenCharacterCommands(commands.Component):
         out_msgs = utils.strextend(out_msgs, MAX_MSG_LENGTH, f" | Training time is estimated")
         # out = " ✦ ".join(out_str)
         for msg in out_msgs:
-            await ctx.reply(f"/me {msg}")
+            await ctx.send(f"/me {msg}")
 
     @commands.command(aliases=('rec',))
     async def recommend(self, ctx: commands.Context, user: str = ''):
@@ -392,11 +392,11 @@ class RavenCharacterCommands(commands.Component):
 
         if has_armor_recs:
             out_str[-1] += f" | {ctx.prefix}recsymbols if you're confused"
-        await ctx.reply(utils.strjoin('', f'/me Recommendations for {utils.unping(user_chars[0].user_name)} – ', utils.strjoin(' ✦ ', *out_str)))
+        await ctx.send(utils.strjoin('', f'/me Recommendations for {utils.unping(user_chars[0].user_name)} – ', utils.strjoin(' ✦ ', *out_str)))
 
     @commands.command()
     async def recsymbols(self, ctx: commands.Context):
-        await ctx.reply("/me "
+        await ctx.send("/me "
         "The letters represent different armor pieces: "
         "H for Helmet, C for Chest, and so on. "
         "Armor pieces are arranged in the following order: "
@@ -425,7 +425,7 @@ class RavenCharacterCommands(commands.Component):
             await ctx.reply("This user has no characters.")
             return
         out = " • ".join(out_str)
-        await ctx.reply(f"/me {out}")
+        await ctx.send(f"/me {out}")
 
     @commands.command(aliases=('res','coins','coin'))
     async def resources(self, ctx: commands.Context, user: str = ''):
@@ -449,7 +449,7 @@ class RavenCharacterCommands(commands.Component):
             worth_strings.append(
                 f"{utils.unping(utils.truncate_sentence(char.name, 30))}: {utils.pl(inventory_worth, 'coin')}"
             )            
-        await ctx.reply(
+        await ctx.send(
             f"/me {user_name} has {utils.pl(coin_amount, 'coin')} ✦ "\
             f"Inventory worth: {utils.strjoin(' • ', *worth_strings)} ✦ "\
             f"Net worth: {utils.pl(total_worth, 'coin')}"

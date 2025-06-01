@@ -242,7 +242,7 @@ class BotSettingsCommands(commands.Component):
             )
             return
         await self.bot.part_channel(channel.id)
-        await ctx.reply(
+        await ctx.send(
             f"/me left #{channel.name}."
         )
 
@@ -268,7 +268,7 @@ class BotSettingsCommands(commands.Component):
                 else:
                     user = await utils.get_user_cached(self.bot, user_id=channel_id)
                     channel_texts.append(f"{user.name}")
-        await ctx.reply(f"/me Currently in {utils.pl(len(channel_texts), 'channel')}.")
+        await ctx.send(f"/me Currently in {utils.pl(len(channel_texts), 'channel')}.")
         print("--- CHANNELS JOINED ---")
         for channels in [channel_texts[i:i+5] for i in range(0, len(channel_texts), 5)]:
             print(', '.join(channels))
