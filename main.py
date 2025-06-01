@@ -180,7 +180,7 @@ class BotUtilityCommands(commands.Component):
     #     await self.bot.reload_tokens()
     #     await ctx.reply("Tokens reloaded successfully.")
 
-    @commands.command(aliases=('uptime', 'ut'))
+    @commands.command()
     async def uptime(self, ctx: commands.Context):
         """Shows the bot's uptime."""
         current_time = datetime.now()
