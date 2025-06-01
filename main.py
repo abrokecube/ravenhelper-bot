@@ -60,6 +60,7 @@ class Bot(commands.Bot):
         await self.add_component(MarketplaceCommands(self, rfapi))
 
         await self.add_component(HelpCommands(self))
+        await self.add_component(BotUtilityCommands(self))
         await self.add_component(BotSettingsCommands(self))
         await self.add_component(TestCommands(self))
         await self.add_component(ReminderCommands(self))

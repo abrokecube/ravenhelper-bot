@@ -25,8 +25,8 @@ class RavenInfo(commands.Component):
         await ctx.reply(f"/me {out_text}")
 
     @is_bot_owner()
-    @commands.command(aliases=('ping',))
-    async def responsetime(self, ctx: commands.Context):
+    @commands.command(aliases=('ravenping',))
+    async def ravenresponsetime(self, ctx: commands.Context):
         """Tests response time of RavenNest"""
         await ctx.reply("Testing for 4 seconds...")
         response_times = []
