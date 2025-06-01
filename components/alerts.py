@@ -276,23 +276,23 @@ class AlertCommands(commands.Component):
         self, ctx: commands.Context, channel: str="", alerts: Iterable[str] = []
     ):
         if len(channel) == 0:
-            await ctx.reply("Please include a channel name.")
+            await ctx.send("Please include a channel name.")
             return (None, None)
         channel = channel.lstrip("@")
         if not utils.is_twitch_username(channel):
-            await ctx.reply("uuh Not a valid user")
+            await ctx.send("uuh Not a valid user")
             return (None, None)
         channel_user_data = await self.get_user(user_login=channel)
         if not channel_user_data:
-            await ctx.reply("uuh Not a real user")
+            await ctx.send("uuh Not a real user")
             return (None, None)
         valid_alerts = [x.value for x in AlertType]
         if len(alerts) == 0:
-            await ctx.reply(f"Specify one or more alert types. Available alerts: {', '.join(valid_alerts)}")
+            await ctx.send(f"Specify one or more alert types. Available alerts: {', '.join(valid_alerts)}")
             return (None, None)
         for alert in alerts:
             if not alert.lower() in valid_alerts:
-                await ctx.reply(f"Invalid alert. Available alerts: {', '.join(valid_alerts)}")
+                await ctx.send(f"Invalid alert. Available alerts: {', '.join(valid_alerts)}")
                 return (None, None)
         return channel, channel_user_data
         
@@ -319,7 +319,7 @@ class AlertCommands(commands.Component):
                 continue
             if sub in self.subscriptions[sub.alert_type]:
                 continue
-                # await ctx.reply(f"Already subscribed to this alert.")
+                # await ctx.send(f"Already subscribed to this alert.")
                 # return
             try:
                 await self.add_subscription(sub)
@@ -343,7 +343,7 @@ class AlertCommands(commands.Component):
                 response_text += f" ({len(failed_subs)} failed.)"
         else:
             response_text = f"Failed to subscribe."
-        await ctx.reply(response_text)
+        await ctx.send(response_text)
 
     @commands.is_elevated()
     @commands.command(aliases=('unnotify','rmalert','removealert','unlisten'))
@@ -363,17 +363,17 @@ class AlertCommands(commands.Component):
                     break
             if subscription is None:
                 continue
-                # await ctx.reply(f"No matching subscription found in this channel.")
+                # await ctx.send(f"No matching subscription found in this channel.")
                 # return
             self.subscriptions[alert_type].remove(sub)
             await self.delete_subscription_from_db(subscription.id)
             successes.append(alert_type.value)
         if len(successes) == 0:
-            await ctx.reply(
+            await ctx.send(
                 f"Failed to unsubscribe to alerts for #{channel_user_data.display_name}."
             )
             return
-        await ctx.reply(
+        await ctx.send(
             f"Unsubscribed to {utils.strjoin(', ', *successes, before_end=' and ')}"
             f" in #{channel_user_data.display_name}."
         )
@@ -398,9 +398,9 @@ class AlertCommands(commands.Component):
             )
             alert_count += len(alert_types)
         if alert_count == 0:
-            await ctx.reply(f"No subscribed alerts in {ctx.broadcaster.display_name}.")
+            await ctx.send(f"No subscribed alerts in {ctx.broadcaster.display_name}.")
             return
-        await ctx.reply(
+        await ctx.send(
             f"{utils.pl(alert_count, 'subscribed alerts')} in {ctx.broadcaster.display_name}: "
             f"{utils.strjoin(' – ', *channel_alert_strings)}."
         )

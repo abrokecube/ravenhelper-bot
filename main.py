@@ -143,17 +143,17 @@ class Bot(commands.Bot):
             return None
         elif isinstance(payload.exception, commands.exceptions.CommandInvokeError):
             if isinstance(payload.exception.original, AssertionError):
-                await payload.context.reply("bruh Error...")
+                await payload.context.send("bruh Error...")
             elif isinstance(payload.exception.original, twitchio.exceptions.HTTPException):
                 if payload.exception.original.status == 401:
                     if not self._is_reloading_tokens:
                         await self.reload_tokens()
                     await self.event_message(payload.context.message)
             else:
-                await payload.context.reply("bruh Error.")
+                await payload.context.send("bruh Error.")
             return await super().event_command_error(payload)
         else:
-            # await payload.context.reply("bruh Error.")
+            # await payload.context.send("bruh Error.")
             return await super().event_command_error(payload)
 
     async def get_channel_prefixes(self, bot: commands.Bot, message: twitchio.ChatMessage):
@@ -178,7 +178,7 @@ class BotUtilityCommands(commands.Component):
     # async def reload_tokens(self, ctx: commands.Context):
     #     """Reloads the bot's tokens."""
     #     await self.bot.reload_tokens()
-    #     await ctx.reply("Tokens reloaded successfully.")
+    #     await ctx.send("Tokens reloaded successfully.")
 
     @commands.command()
     async def uptime(self, ctx: commands.Context):
@@ -202,12 +202,12 @@ class BotSettingsCommands(commands.Component):
     async def prefix(self, ctx: commands.Context, *args: str):
         """Set the bot's prefix for commands."""
         if not args:
-            await ctx.reply("Include one or more prefixes separated with a space.")
+            await ctx.send("Include one or more prefixes separated with a space.")
             return
         async with get_async_session() as session:
             channel_settings = await dbutils.get_channel_settings(session, channel=ctx.message.broadcaster)
             channel_settings.prefix = list(args)
-        await ctx.reply(
+        await ctx.send(
             f"Prefix set to {utils.strjoin(', ', *[f'"{x}"' for x in args], before_end=' and ')} "
             f"for channel #{ctx.message.broadcaster.name}"
         )
@@ -229,18 +229,18 @@ class BotSettingsCommands(commands.Component):
         if user:
             channel = await utils.get_user_cached(self.bot, user_login=user)
         if channel is None:
-            await ctx.reply(
+            await ctx.send(
                 "Not a valid channel..."
             )
         if channel.id in self.bot.subscribed_channels:
-            await ctx.reply(
+            await ctx.send(
                 f"Already listening to this channel! "
                 f"(You can force rejoin by using {ctx.prefix}part and then {ctx.prefix}{ctx.invoked_with} again)"
             )
             return
         try:
             await self.bot.join_channel(channel.id)
-            await ctx.reply(
+            await ctx.send(
                 f"Joined #{channel.display_name}!"
             )
             await channel.send_message(
@@ -249,7 +249,7 @@ class BotSettingsCommands(commands.Component):
                 message=f"/me joined #{channel.display_name}!"
             )
         except twitchio.HTTPException:
-            await ctx.reply(
+            await ctx.send(
                 "Failed to join channel! :("
             )
             
@@ -267,7 +267,7 @@ class BotSettingsCommands(commands.Component):
             channel = await utils.get_user_cached(self.bot, user_login=user)
             
         if not channel.id in self.bot.subscribed_channels:
-            await ctx.reply(
+            await ctx.send(
                 f"Bot is not in #{channel.name}."
             )
             return
@@ -308,9 +308,9 @@ class BotSettingsCommands(commands.Component):
     async def rf_reauth(self, ctx: commands.Context):
         r = await rfapi._authenticate()
         if r:
-            await ctx.reply("Successful")
+            await ctx.send("Successful")
         else:
-            await ctx.reply("Unsuccessful")
+            await ctx.send("Unsuccessful")
             
 
 

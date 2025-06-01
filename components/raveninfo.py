@@ -22,13 +22,13 @@ class RavenInfo(commands.Component):
         else:
             out_text = f"Current global exp multiplier is {mult.multiplier}×, ending in {format_timedelta(time_left, TimeSize.LONG)}, thanks to {mult.event_name}!"
 
-        await ctx.reply(f"/me {out_text}")
+        await ctx.send(f"/me {out_text}")
 
     @is_bot_owner()
     @commands.command(aliases=('ravenping',))
     async def ravenresponsetime(self, ctx: commands.Context):
         """Tests response time of RavenNest"""
-        await ctx.reply("Testing for 4 seconds...")
+        await ctx.send("Testing for 4 seconds...")
         response_times = []
         master_t1 = time.monotonic()
         for _ in range(10):
@@ -41,7 +41,7 @@ class RavenInfo(commands.Component):
         t_min = int(min(response_times)*1000)
         t_max = int(max(response_times)*1000)
         t_avg = int((sum(response_times) / len(response_times)) * 1000)
-        await ctx.reply(
+        await ctx.send(
             f"Sent {len(response_times)} requests to RavenNest. Min = {t_min}ms, Max = {t_max}ms, Avg = {t_avg}ms",
             me=True
         )
