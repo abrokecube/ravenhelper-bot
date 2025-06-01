@@ -349,14 +349,14 @@ class RavenItemCommands(commands.Component):
         await self.rf_api.refresh_items()
         await ctx.reply(f"Successfully refetched {len(ravenpy.get_all_items())} items", me=True)
 
-    @is_bot_owner()
-    @commands.command()
-    async def testing(self, ctx: commands.Context, *args: str):
-        """aga"""
-        username_split = ['mine craft', 'btmc', 'abroke cube gaming']
-        asdfasdf = split_arguments(args, SplitWildcard(1), SplitQuery(username_split), get_split_query(), SplitWildcard(1))
-        print(asdfasdf)
-        ...
+    # @is_bot_owner()
+    # @commands.command()
+    # async def testing(self, ctx: commands.Context, *args: str):
+    #     """aga"""
+    #     username_split = ['mine craft', 'btmc', 'abroke cube gaming']
+    #     asdfasdf = split_arguments(args, SplitWildcard(1), SplitQuery(username_split), get_split_query(), SplitWildcard(1))
+    #     print(asdfasdf)
+    #     ...
     
     @routines.routine(delta=timedelta(hours=2), wait_first=True)
     async def refresh_items_task(self):

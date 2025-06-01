@@ -10,7 +10,7 @@ import os
 import logging
 import asyncio
 import ravenpy
-from datetime import timedelta
+from datetime import timedelta, datetime
 from typing import Set
 
 from utils import utils
@@ -167,6 +167,30 @@ class Bot(commands.Bot):
     async def auto_token_reload(self):
         await self.reload_tokens()
 
+class BotUtilityCommands(commands.Component):
+    def __init__(self, bot: Bot):
+        self.bot = bot
+        self.start_time = datetime.now()
+
+    # @commands.is_owner()
+    # @commands.command(aliases=('reloadtokens', 'reload', 'rt'))
+    # async def reload_tokens(self, ctx: commands.Context):
+    #     """Reloads the bot's tokens."""
+    #     await self.bot.reload_tokens()
+    #     await ctx.reply("Tokens reloaded successfully.")
+
+    @commands.command(aliases=('uptime', 'ut'))
+    async def uptime(self, ctx: commands.Context):
+        """Shows the bot's uptime."""
+        current_time = datetime.now()
+        uptime_str = utils.format_timedelta(current_time - self.start_time, utils.TimeSize.LONG)
+        await ctx.reply(f"/me Bot has been running for {uptime_str}.")
+        
+    @commands.command(aliases=('ping',))
+    async def pong(self, ctx: commands.Context):
+        """Pong!"""
+        await ctx.reply("Pong! 🏓")
+
 
 class BotSettingsCommands(commands.Component):
     def __init__(self, bot: Bot):
@@ -190,7 +214,12 @@ class BotSettingsCommands(commands.Component):
     
     @commands.command()
     async def join(self, ctx: commands.Context, user: str=""):
-        """Add the bot to your channel. Can only be used in the bot's channel or abrokecube's channel."""
+        """Adds the bot to a channel. Can only be used by the bot owner."""
+        # """Add the bot to your channel. Can only be used in the bot's channel or abrokecube's channel."""
+        # may be uncommented to enable any user to add this bot
+        if not ctx.is_owner():
+            return
+        
         if user and not ctx.is_owner():
             return
         if (not ctx.is_owner()) and (ctx.broadcaster.id not in (self.bot.bot_id, self.bot.owner_id)):
@@ -302,12 +331,6 @@ class TestCommands(commands.Component):
             username = ctx.author.name
         await ctx.send(f'byeee {username}')
     
-    # @is_bot_owner()
-    # @commands.command()
-    # async def reload_tokens(self, ctx: commands.Context):
-    #     await self.bot.load_tokens()        
-    #     await ctx.reply(f'Reloaded tokens', me=True)
-
 
 rfapi: ravenpy.RavenNest
 async def main() -> None:
