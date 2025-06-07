@@ -309,7 +309,7 @@ class RavenCharacterCommands(commands.Component):
                     
                 is_training_combat = skill.skill in ravenpy.fighting_skills
                 recommended_island = ravenpy.get_island_for_level(skill.level)
-                if is_training_combat and skill.level < char.combat_level and char.combat_level < 300:
+                if is_training_combat and skill.level < char.combat_level:
                     recommended_island = ravenpy.get_island_for_level(char.combat_level)
                 
                 if recommended_island != char.island:
