@@ -243,6 +243,7 @@ class CharacterEquipment:
 
 fighting_replacements = {
     "Atk": "Attack",
+    "Att": "Attack",
     "Heal": "Healing",
     "Def": "Defense",
     "Str": "Strength"
