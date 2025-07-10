@@ -133,7 +133,7 @@ def helptext(bot: commands.Bot, arg: str, prefix: str) -> str:
 
 class HelpCommands(commands.Component):
     def __init__(self, bot: commands.Bot):
-        bot = bot
+        self.bot = bot
     
     @commands.command(aliases=('commands',))
     async def help(self, ctx: commands.Context, *args: str):
