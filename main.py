@@ -27,7 +27,7 @@ from components.characters import RavenCharacterCommands
 from components.charactertools import RavenCharacterTools
 from components.raveninfo import RavenInfo
 from components.items import RavenItemCommands
-from components.help import HelpCommands
+from components.help import HelpCommands, helptext
 from components.marketplace import MarketplaceCommands
 
 from components.reminders import ReminderCommands
@@ -140,6 +140,9 @@ class Bot(commands.Bot):
             return None
         elif isinstance(payload.exception, commands.exceptions.GuardFailure):
             LOGGER.debug(f"[{payload.context.channel.name}] ({payload.context.chatter.name}) {payload.context.message.text} was guarded")
+            return None
+        elif isinstance(payload.exception, commands.exceptions.MissingRequiredArgument):
+            await payload.context.send(helptext(self, payload.context.invoked_with, payload.context.prefix))
             return None
         elif isinstance(payload.exception, commands.exceptions.CommandInvokeError):
             if isinstance(payload.exception.original, AssertionError):
