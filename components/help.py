@@ -143,4 +143,4 @@ class HelpCommands(commands.Component):
             command (str, optional): A command to show details about.
             argument (str, optional): Argument of a command to show details about.
         """
-        ctx.reply(helptext(self.bot, strjoin(' ', *args), ctx.prefix))
+        await ctx.reply(helptext(self.bot, strjoin(' ', *args), ctx.prefix))
