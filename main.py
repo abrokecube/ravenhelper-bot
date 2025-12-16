@@ -35,6 +35,9 @@ from components.alerts import AlertCommands
 
 load_dotenv()
 
+with open('pid', 'w') as f:
+    f.write(str(os.getpid()))
+
 LOGGER: logging.Logger = logging.getLogger("Bot")
 TARGET_CHANNEL = os.getenv('TARGET_CHANNEL')
 BOT_ID = os.getenv('BOT_ID')
