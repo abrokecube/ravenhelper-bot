@@ -165,9 +165,9 @@ class RavenTextCommands(commands.Component):
     @commands.command(aliases=('skill','train'))
     async def skills(self, ctx: commands.Context):
         await ctx.send("/me Skills you can train ✦ "
-                       "Combat skills: Health, Attack, Defense, Strength, Magic, Ranged, Healing • "
-                       "Resource skills: Woodcutting, Farming, Fishing, Gathering, Mining • "
-                       "Crafting skills: Crafting, Cooking, Alchemy • "
+                       "Combat skills: Health, Attack, Defense, Strength, Magic, Ranged, Healing ✦ "
+                       "Resource skills: Woodcutting, Farming, Fishing, Gathering, Mining ✦ "
+                       "Crafting skills: Crafting, Cooking, Alchemy ✦ "
                        "Other: Sailing"
                        )
 
