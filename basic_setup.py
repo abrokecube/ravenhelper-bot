@@ -20,14 +20,16 @@ BOT_ID = os.getenv('BOT_ID')
 class Bot(commands.Bot):
     def __init__(self):
         super().__init__(
-            client_id=os.getenv('CLIENT_ID'),
-            client_secret=os.getenv('CLIENT_SECRET'),
+            client_id=os.getenv('TWITCH_APP_ID'),
+            client_secret=os.getenv('TWITCH_APP_SECRET'),
             bot_id=os.getenv('BOT_ID'),
             owner_id=os.getenv('OWNER_ID'),
             prefix="?"
         )
 
     async def setup_hook(self) -> None:
+        if not BOT_ID:
+            LOGGER.error("BOT_ID is not configued. Please configure your .env file.")
         LOGGER.info("Login with http://localhost:4343/oauth?scopes=user:read:chat%20user:write:chat%20user:bot")
 
     async def event_message(self, payload):
@@ -68,7 +70,16 @@ class Bot(commands.Bot):
         else:
             # await payload.context.send("bruh Error.")
             return await super().event_command_error(payload)
-    
+
+    async def add_token(self, token, refresh):
+        resp: twitchio.authentication.ValidateTokenPayload = await super().add_token(token, refresh)
+        LOGGER.info(f"Added token for {resp.user_id}")
+        if resp.user_id != BOT_ID:
+            LOGGER.error("The authenticated user does not match BOT_ID")
+        else:
+            LOGGER.info("Success. You can now exit this script")
+        
+
     @routines.routine(delta=timedelta(days=1), wait_first=True, wait_remainder=True)
     async def auto_token_reload(self):
         await self.reload_tokens()

@@ -45,8 +45,8 @@ BOT_ID = os.getenv('BOT_ID')
 class Bot(commands.Bot):
     def __init__(self):
         super().__init__(
-            client_id=os.getenv('CLIENT_ID'),
-            client_secret=os.getenv('CLIENT_SECRET'),
+            client_id=os.getenv('TWITCH_APP_ID'),
+            client_secret=os.getenv('TWITCH_APP_SECRET'),
             bot_id=os.getenv('BOT_ID'),
             owner_id=os.getenv('OWNER_ID'),
             prefix=self.get_channel_prefixes
@@ -344,7 +344,7 @@ async def main() -> None:
     global rfapi
     await create_all_tables()
     twitchio.utils.setup_logging(level=int(os.getenv("LOGGING_LEVEL")))
-    rfapi = ravenpy.RavenNest(os.getenv("API_USER"), os.getenv("API_PASS"))
+    rfapi = ravenpy.RavenNest(os.getenv("RAVENFALL_API_USER"), os.getenv("RAVENFALL_API_PASS"))
     try:
         await rfapi.login()
     except aiohttp.client_exceptions.ClientConnectorError:
