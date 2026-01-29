@@ -212,4 +212,8 @@ class RavenTextCommands(commands.Component):
     @commands.command()
     async def slayer(self, ctx: commands.Context):
         await ctx.send("/me ⚔️ Train Slayer by joining Raids and Dungeons.")
+        
+    @commands.command(aliases=("github", "source"))
+    async def sourcecode(self, ctx: commands.Context):
+        await ctx.send("/me Source code on GitHub: https://github.com/abrokecube/ravenhelper-bot")
 
