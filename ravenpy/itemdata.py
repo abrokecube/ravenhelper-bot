@@ -1,11 +1,11 @@
+from __future__ import annotations  
 import os
 import math
 import thefuzz.process  # pyright: ignore [reportMissingTypeStubs]
 import thefuzz.fuzz  # pyright: ignore [reportMissingTypeStubs]
 import json
-from typing import TYPE_CHECKING, cast, TypedDict
-if TYPE_CHECKING:
-    from .ravenpy import RavenNest
+from typing import cast, TypedDict
+from .ravenpy import RavenNest
 from .modals import RFItemJson, RFItemDropJson, RFItemRedeemableJson, RFRecipeJson, InternalItemData, FuzzResult
 
 dirname = os.path.dirname(__file__)
