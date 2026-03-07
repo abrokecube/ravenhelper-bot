@@ -1,7 +1,6 @@
 from enum import Enum
 
 class ItemTypes(Enum):
-    Unknown = 0
     TwoHandedSword = 1
     OneHandedSword = 2
     TwoHandedAxe = 3
@@ -40,7 +39,6 @@ class ItemTypes(Enum):
     Alchemy = 36
 
 class ItemCategory(Enum):
-    NoneCategory = -1
     Weapon = 0
     Armor = 1
     Ring = 2
@@ -55,7 +53,6 @@ class ItemCategory(Enum):
     Cosmetic = 11
     
 class ItemMaterials(Enum):
-    Unknown = 0
     Bronze = 1
     Iron = 2
     Steel = 3
@@ -86,7 +83,6 @@ class ItemMaterials(Enum):
     ElderAtlarus = 28
 
 class Skills(Enum):
-    NoneSkill = -1
     Attack = 0
     Defense = 1
     Strength = 2
@@ -131,7 +127,6 @@ class Enchantments(Enum):
     Armor = 19
 
 class Stat(Enum):
-    UnknownStat = -1
     WeaponAim = 0
     WeaponPower = 1
     MagicAim = 2
@@ -175,7 +170,7 @@ class Effects(Enum):
     Teleport = 31
 
 class Islands(Enum):
-    NoneIsland = -2
+    Unknown = -2
     Ferry = -1
     Sailing = 0
     Home = 1
@@ -187,18 +182,15 @@ class Islands(Enum):
     Eldara = 7
 
 class ClanSkill(Enum):
-    UnknownSkill = 0
     Enchanting = 1
 
 class ClanRole(Enum):
-    UnknownRole = -1
     Inactive = 0
     Recruit = 1
     Member = 2
     Officer = 3
 
 class PlayerTask(Enum):
-    UnknownTask = -1
     Woodcutting = 0
     Fishing = 1
     Mining = 2
