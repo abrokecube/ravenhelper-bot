@@ -1,8 +1,12 @@
 import os
 import math
-import thefuzz.process
-import thefuzz.fuzz
+import thefuzz.process  # pyright: ignore [reportMissingTypeStubs]
+import thefuzz.fuzz  # pyright: ignore [reportMissingTypeStubs]
 import json
+from typing import TYPE_CHECKING, cast, TypedDict
+if TYPE_CHECKING:
+    from .ravenpy import RavenNest
+from .modals import RFItemJson, RFItemDropJson, RFItemRedeemableJson, RFRecipeJson, InternalItemData, FuzzResult
 
 dirname = os.path.dirname(__file__)
 
@@ -58,36 +62,55 @@ item_requirement_names = [
     ("requiredSlayerLevel", 10),
 ]
 
+ItemEffect = TypedDict('ItemEffect', {'id': int, 'duration': int, 'percentage': float, 'min_amount': int})
+ItemEffects = TypedDict('ItemEffects', {'name': str, 'effects': list[ItemEffect]})
+class ItemRaidDrop(TypedDict):
+    name: str
+    month_start: int
+    months_length: int
+    min_drop: float
+    max_drop: float
+    tier: int
+    slayer_requirement: int
+InternalGameData = TypedDict('InternalGameData', {'item_effects': dict[str, ItemEffects], 'item_raid_drops': dict[str, ItemRaidDrop]})
+class Buh(TypedDict):
+    item: RFItemJson
+    recipe: RFRecipeJson | None
+    drop: RFItemDropJson | None
+    redeemable: RFItemRedeemableJson | None
 
-async def _fetch_raw_item_data(rf):
+async def _fetch_raw_item_data(rf: RavenNest):  # pyright: ignore [reportUnusedFunction]
     with open(os.path.join(dirname, "data/internal_game_data.json")) as f:
-        a = json.load(f)
-    item_effects: dict = a['item_effects']
-    item_raid_drops: dict = a['item_raid_drops']
+        a: InternalGameData = cast(InternalGameData, json.load(f))
+    item_effects: dict[str, ItemEffects] = a['item_effects']
+    item_raid_drops: dict[str, ItemRaidDrop] = a['item_raid_drops']
 
     item_effects_strings = list(item_effects.keys())
     item_raid_drops_strings = list(item_raid_drops.keys())
 
-    items = await rf._items()
-    recipes = await rf._recipes()
-    drops = await rf._drops()
-    redeemables = await rf._redeemables()
+    items = await rf._items()  # pyright: ignore [reportPrivateUsage]
+    recipes = await rf._recipes()  # pyright: ignore [reportPrivateUsage]
+    drops = await rf._drops()  # pyright: ignore [reportPrivateUsage]
+    redeemables = await rf._redeemables()  # pyright: ignore [reportPrivateUsage]
 
-    items_grouped = {}
+    items_grouped: dict[str, Buh] = {}
     for item in items:
-        items_grouped[item['id']] = [item, None, None, None]
+        items_grouped[item['id']] = {'item': item, 'recipe': None, 'drop': None, 'redeemable': None}
     for recipe in recipes:
-        items_grouped[recipe['itemId']][1] = recipe
+        items_grouped[recipe['itemId']]['recipe'] = recipe
     for drop in drops:
-        items_grouped[drop['itemId']][2] = drop
+        items_grouped[drop['itemId']]['drop'] = drop
     for redeemable in redeemables:
-        items_grouped[redeemable['itemId']][3] = redeemable
+        items_grouped[redeemable['itemId']]['redeemable'] = redeemable
     
-
-    items_out = {}
+    items_out: dict[str, InternalItemData] = {}
     for item_id in items_grouped:
-        item, recipe, drop, redeemable = items_grouped[item_id]
-        item_a = {
+        item_data = items_grouped[item_id]
+        item = item_data['item']
+        recipe = item_data['recipe']
+        drop = item_data['drop']
+        redeemable = item_data['redeemable']
+        item_a: InternalItemData = {
             "id": item['id'],
             "name": item['name'],
             "description": item['description'],
@@ -126,14 +149,14 @@ async def _fetch_raw_item_data(rf):
         if item_a['category'] in [0, 1, 11, 2, 3]:
             item_a['enchantments'] = max(1, math.floor(math.floor(item_a['level'] / 10) / 5))
         for key, name in item_stat_names:
-            value = item[key]
+            value = cast(int, item[key])
             if value > 0:
                 item_a['stats'].append({
                     'stat': name,
                     'level': value
                 })
         for key, name in item_requirement_names:
-            value = item[key]
+            value = cast(int, item[key])
             if value > 0:
                 item_a['equip_requirements'].append({
                     'skill': name,
@@ -160,12 +183,13 @@ async def _fetch_raw_item_data(rf):
             item_a['drop_cooldown'] = drop['cooldown']
 
         if item_a["category"] in [4, 5]:
-            found_effect_str = thefuzz.process.extract(item_a['name'], item_effects_strings, limit=1, scorer=thefuzz.fuzz.ratio)[0]
+
+            found_effect_str: FuzzResult = cast(FuzzResult, thefuzz.process.extract(item_a['name'], item_effects_strings, limit=1, scorer=thefuzz.fuzz.ratio)[0])  # pyright: ignore [reportUnknownMemberType]
             if found_effect_str[1] > 90:
                 item_a['effects'] = item_effects[found_effect_str[0]]['effects']
             else:
                 ...
-        found_raid_drop_str = thefuzz.process.extract(item_a['name'], item_raid_drops_strings, limit=1, scorer=thefuzz.fuzz.ratio)[0]
+        found_raid_drop_str: FuzzResult = cast(FuzzResult, thefuzz.process.extract(item_a['name'], item_raid_drops_strings, limit=1, scorer=thefuzz.fuzz.ratio)[0])  # pyright: ignore [reportUnknownMemberType]
         if found_raid_drop_str[1] > 90:
             raid_stuff = item_raid_drops[found_raid_drop_str[0]]
             item_a["raid_drop_month_start"] = raid_stuff["month_start"]
@@ -188,7 +212,7 @@ async def _fetch_raw_item_data(rf):
         for ingredient in item['craft_ingredients']:
             items_out[ingredient['item_id']]['used_in'].append(item['id'])
 
-    items_list = []
+    items_list: list[InternalItemData] = []
     for item_id, item in items_out.items():
         items_list.append(item)
     items_list.sort(key=lambda x: x['name'])
