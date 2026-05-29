@@ -1,20 +1,16 @@
 from typing import NamedTuple, TypedDict
 
-
 class ItemStatJson(TypedDict):
     stat: int
     level: int
-
 
 class EquipRequirementJson(TypedDict):
     skill: int
     level: int
 
-
 class CraftIngredientJson(TypedDict):
     item_id: str
     amount: int
-
 
 class ItemEffectJson(TypedDict):
     id: int
@@ -22,11 +18,9 @@ class ItemEffectJson(TypedDict):
     percentage: float
     min_amount: int
 
-
 class RFRecipeIngredientJson(TypedDict):
     itemId: str
     amount: int
-
 
 class RFRecipeJson(TypedDict):
     id: str
@@ -41,7 +35,6 @@ class RFRecipeJson(TypedDict):
     requiredLevel: int
     requiredSkill: int
     ingredients: list[RFRecipeIngredientJson]
-
 
 class InternalItemData(TypedDict):
     id: str
@@ -79,7 +72,6 @@ class InternalItemData(TypedDict):
     raid_drop_tier: int
     drop_slayer_requirement: int
 
-
 class RFItemJson(TypedDict):
     id: str
     name: str
@@ -112,14 +104,12 @@ class RFItemJson(TypedDict):
     soulbound: bool
     modified: str
 
-
 class RFItemDropJson(TypedDict):
     itemId: str
     requiredSkill: int
     levelRequirement: int
     dropChance: float
     cooldown: int
-
 
 class RFItemRedeemableJson(TypedDict):
     id: str
@@ -129,7 +119,7 @@ class RFItemRedeemableJson(TypedDict):
     amount: int
     availableDateRange: str | None
 
-
 class FuzzResult(NamedTuple):
     string: str
     score: int
+    
