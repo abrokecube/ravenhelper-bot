@@ -5,7 +5,7 @@ import os
 from re import sub
 import json
 
-load_dotenv()
+_ = load_dotenv()
 
 with open('./ravenpy/data/items.json') as f:
     items = json.load(f)

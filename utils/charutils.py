@@ -7,7 +7,7 @@ import re
 from .utils import split_arguments, SplitQuery, SplitWildcard, strjoin, is_twitch_username, filter_username
 DEBUG = True
 
-def match_identifier(chars: List[ravenpy.Character], target: str):
+def match_identifier(chars: list[ravenpy.Character], target: str):
     for idx, char in enumerate(chars):
         char_id = set()   
         char_id.add(str(idx+1))

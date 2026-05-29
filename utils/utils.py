@@ -243,7 +243,7 @@ class SplitQuery:
         self.return_result_count = return_result_count
         self.max_match_count = match_count
         self.fuzzy_algo = match_algo
-        self._grouped_by_word_count: Dict[int, List[str]] = {}
+        self._grouped_by_word_count: dict[int, list[str]] = {}
         self._max_word_count = 0
         self._min_word_count = inf
         for string in self.string_list:
@@ -263,11 +263,11 @@ class SplitResult:
     def __init__(self):
         self.text: str | None = None
         self.match_score: int = 0
-        self.match_results: Iterable[Tuple[str, int]] = tuple()
+        self.match_results: Iterable[tuple[str, int]] = tuple()
         self.match_query = ""
 
 def split_arguments(in_str: str | Iterable[str], *queries: SplitQuery | SplitWildcard
-) -> Tuple[SplitResult | None]:
+) -> tuple[SplitResult | None]:
     if isinstance(in_str, str):
         in_args = in_str.split()
     else:

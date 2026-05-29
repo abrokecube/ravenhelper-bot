@@ -33,7 +33,7 @@ from components.marketplace import MarketplaceCommands
 from components.reminders import ReminderCommands
 from components.alerts import AlertCommands
 
-load_dotenv()
+_ = load_dotenv()
 
 with open('pid', 'w') as f:
     f.write(str(os.getpid()))

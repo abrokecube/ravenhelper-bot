@@ -60,10 +60,10 @@ class UnsentMessage(NamedTuple):
 class ReminderCommands(commands.Component):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
-        self.active_reminders: List[Reminder] = []
-        self.unsent_messages: List[UnsentMessage] = []
+        self.active_reminders: list[Reminder] = []
+        self.unsent_messages: list[UnsentMessage] = []
         
-        self.active_reminders_user: Dict[str, List[Reminder]] = {}
+        self.active_reminders_user: dict[str, list[Reminder]] = {}
         heapq.heapify(self.active_reminders)
         
         asyncio.create_task(self.load_reminders_from_db())

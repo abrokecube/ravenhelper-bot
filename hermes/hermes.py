@@ -1,17 +1,17 @@
 import asyncio
 import json
-import asyncio
 import websockets
 import random
 import string
 from datetime import datetime, timezone
 from enum import Enum
-from typing import Any, Dict, NamedTuple, TypedDict, Iterable, Callable, Literal, List
+from typing import NamedTuple, TypedDict, Literal, Any
+from collections.abc import Iterable
 import os
 from dotenv import load_dotenv
 import logging
 import time
-load_dotenv()
+_ = load_dotenv()
 
 TWITCH_PUBSUB = "wss://hermes.twitch.tv/v1?clientId=kimne78kx3ncx6brgo4mv6wki5h1ko"
 LOGGER = logging.getLogger("hermes")
@@ -48,16 +48,16 @@ def generate_timestamp():
     now = datetime.now(timezone.utc)
     return now.isoformat(timespec='milliseconds').replace('+00:00', 'Z')
 
-def generate_id(length=21):
+def generate_id(length: int=21) -> str:
     chars = string.ascii_letters + string.digits + "_-"
     return ''.join(random.choices(chars, k=length))
 
 class UnknownResponse(Exception):
-    def __init__(self, *args):
+    def __init__(self, *args: Any):
         super().__init__(*args)
 
 class SubscriptionError(Exception):
-    def __init__(self, *args):
+    def __init__(self, *args: Any):
         super().__init__(*args)
 
 class PartialUser(TypedDict):
@@ -187,7 +187,7 @@ class PredictionOutcome(TypedDict):
     title: str
     total_points: int
     total_users: int
-    top_predictors: List[Predictor]
+    top_predictors: list[Predictor]
     badge: PredictionBadge
 
 class Prediction(TypedDict):
@@ -199,7 +199,7 @@ class Prediction(TypedDict):
     ended_by: PredictionUser | None
     locked_at: str
     locked_by: PredictionUser | None
-    outcomes: List[PredictionOutcome]
+    outcomes: list[PredictionOutcome]
     prediction_window_seconds: int
     status: Literal["ACTIVE", "LOCKED", "RESOLVE_PENDING", "RESOLVED", "CANCEL_PENDING", "CANCELED"]
     title: str
@@ -221,8 +221,8 @@ class TwitchUserPubSub:
         self.uri = TWITCH_PUBSUB
         self.reconnect_uri = None
         self.websocket = None
-        self.pending: Dict[str, asyncio.Future] = {}
-        self.subscriptions: Dict[str, Subscription] = {}
+        self.pending: dict[str, asyncio.Future] = {}
+        self.subscriptions: dict[str, Subscription] = {}
         self.token = token
         self.last_connect_attempt = 0
         self.connect_retry_count = 0
@@ -232,7 +232,7 @@ class TwitchUserPubSub:
         self.authenticated = False
         
         self.raids: set[str] = set()
-        self.predictions: Dict[str, str] = {}
+        self.predictions: dict[str, str] = {}
 
     async def event_started(self):
         pass

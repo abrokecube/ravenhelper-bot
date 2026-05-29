@@ -7,7 +7,7 @@ from utils import langstuff
 from utils.utils import format_seconds, TimeSize, strjoin
 import pandas as pd
 
-load_dotenv()
+_ = load_dotenv()
 async def main():
     rf = ravenpy.RavenNest(os.getenv("RAVENFALL_API_USER"), os.getenv("RAVENFALL_API_PASS"))
     await rf.login()

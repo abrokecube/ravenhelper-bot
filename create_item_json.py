@@ -4,7 +4,7 @@ import os
 import asyncio
 import json
 
-load_dotenv()
+_ = load_dotenv()
 async def main():
     rf = ravenpy.RavenNest(os.getenv("RAVENFALL_API_USER"), os.getenv("RAVENFALL_API_PASS"))
     await rf.login()

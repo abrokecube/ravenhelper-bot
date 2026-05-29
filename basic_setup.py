@@ -11,7 +11,7 @@ from datetime import timedelta
 
 
 
-load_dotenv()
+_ = load_dotenv()
 
 LOGGER: logging.Logger = logging.getLogger("Bot")
 TARGET_CHANNEL = os.getenv('TARGET_CHANNEL')

@@ -90,7 +90,7 @@ class MarketplaceCommands(commands.Component):
 
     async def get_item_owners(
         self, items_sorted: Iterable[ravenpy.MarketplaceItem]
-    ) -> Tuple[ravenpy.Character]:
+    ) -> tuple[ravenpy.Character]:
         item_owners = []
         char_ids = {}
         for market_item in items_sorted:

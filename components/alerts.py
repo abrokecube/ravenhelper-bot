@@ -12,7 +12,7 @@ import logging
 
 import os
 from dotenv import load_dotenv
-load_dotenv()
+_ = load_dotenv()
 import hermes
 
 from database import models
@@ -252,9 +252,9 @@ class AlertCommands(commands.Component):
         self.bot = bot
         self.user_alerts = TwitchAlerts(self)
         asyncio.create_task(self.user_alerts.run())
-        self.subscriptions: Dict[AlertType, List[Subscription]] = {}
+        self.subscriptions: dict[AlertType, list[Subscription]] = {}
         self.twitch_subscriptions = set()
-        self.channel_info: Dict[str, twitchio.ChannelInfo] = {}
+        self.channel_info: dict[str, twitchio.ChannelInfo] = {}
         for x in AlertType:
             self.subscriptions[x] = []
     
@@ -380,7 +380,7 @@ class AlertCommands(commands.Component):
     
     @commands.command(aliases=('listnotify','listlisten','listalerts'))
     async def listalert(self, ctx: commands.Context):
-        alerts: Dict[str, List[AlertType]] = {}
+        alerts: dict[str, list[AlertType]] = {}
         for alert_type in AlertType:
             for subs in self.subscriptions[alert_type]:
                 if subs.user_id == ctx.broadcaster.id:
