@@ -141,7 +141,6 @@ class Result:
     cooldown_fail: float
     expected_cooldown: float
     xp_per_second: float
-    craft_items: int | None  # total ingredient quantity, None if the item has no recipe
 
 
 def evaluate(item, skill_level):
@@ -158,9 +157,6 @@ def evaluate(item, skill_level):
     xp_per_attempt = sum(p * enchanting_exp(skill_level, attr, lvl) for attr, p in probs.items() if attr > 0)
     expected_cd = p_success * cd_success + (1 - p_success) * cd_fail
 
-    ingredients = item.get("craft_ingredients") or []
-    craft_items = sum(ing.get("amount", 0) for ing in ingredients) if ingredients else None
-
     return Result(
         name=item.get("name") or "?",
         item_id=str(item.get("id", "")),
@@ -172,7 +168,6 @@ def evaluate(item, skill_level):
         cooldown_fail=cd_fail,
         expected_cooldown=expected_cd,
         xp_per_second=xp_per_attempt / expected_cd,
-        craft_items=craft_items,
     )
 
 
@@ -196,10 +191,6 @@ def main():
         "--members", type=int, default=1,
         help="how many clan members will enchant in parallel. Cooldowns are per character, so XP adds up.",
     )
-    parser.add_argument(
-        "--sort", choices=["craft", "rate"], default="craft",
-        help="craft: fewest crafting items first, items with no recipe last (default). rate: highest XP/sec first.",
-    )
     args = parser.parse_args()
 
     if args.level < 1:
@@ -220,30 +211,24 @@ def main():
         print("No enchantable items found in the file.")
         return
 
-    if args.sort == "craft":
-        # Craftable items first, fewest ingredients first; ties broken by XP/sec.
-        # Items with no recipe go last.
-        results.sort(key=lambda r: (r.craft_items is None, r.craft_items or 0, -r.xp_per_second))
-    else:
-        results.sort(key=lambda r: r.xp_per_second, reverse=True)
+    results.sort(key=lambda r: r.xp_per_second, reverse=True)
 
-    print(f"Enchanting level {args.level}, {len(results)} enchantable items, {args.members} member(s), sorted by {args.sort}\n")
-    header = f"{'#':>3}  {'Item':<32} {'Lv':>4} {'Cat':<8} {'Craft':>5} {'Succ%':>6} {'XP/ench':>9} {'Cooldown':>9} {'Clan XP/hr':>12}"
+    print(f"Enchanting level {args.level}, {len(results)} enchantable items, {args.members} member(s)\n")
+    header = f"{'#':>3}  {'Item':<32} {'Lv':>4} {'Cat':<8} {'Succ%':>6} {'XP/ench':>9} {'Cooldown':>9} {'Clan XP/hr':>12}"
     print(header)
     print("-" * len(header))
 
     for rank, r in enumerate(results[: args.top], start=1):
         xp_per_hour = r.xp_per_second * 3600 * args.members
-        craft = "n/a" if r.craft_items is None else str(r.craft_items)
         print(
-            f"{rank:>3}  {r.name[:32]:<32} {r.level:>4} {r.category[:8]:<8} {craft:>5} "
+            f"{rank:>3}  {r.name[:32]:<32} {r.level:>4} {r.category[:8]:<8} "
             f"{r.success_chance * 100:>5.1f}% {r.xp_per_enchant:>9.0f} "
             f"{format_duration(r.expected_cooldown):>9} {xp_per_hour:>12,.0f}"
         )
 
-    best = max(results, key=lambda r: r.xp_per_second)
+    best = results[0]
     print(
-        f"\nHighest rate: {best.name} (level {best.level}). Success cooldown {format_duration(best.cooldown_success)}, "
+        f"\nBest: {best.name} (level {best.level}). Success cooldown {format_duration(best.cooldown_success)}, "
         f"fail cooldown {format_duration(best.cooldown_fail)}."
     )
 
