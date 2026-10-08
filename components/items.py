@@ -183,6 +183,10 @@ class RavenItemCommands(commands.Component):
         if item.enchantments: 
             enchants = f"Up to {pl(item.enchantments, 'enchantment')}"
         
+        item_level = ""
+        if item.level > 0:
+            item_level = f"Item level {item.level}"
+        
         raid_drop = ""
         if item.raid_min_drop > 0:
             raid_drop = "Can drop in raids/dungeons"
@@ -200,13 +204,13 @@ class RavenItemCommands(commands.Component):
 
         if (len(crafting) + len(effects)) > 250:
             out_strs = strjoin_len(
-                ' • ', MAX_MSG_LENGTH, name_desc, stats, effects, level, drop_level,
+                ' • ', MAX_MSG_LENGTH, name_desc, stats, effects, level, drop_level, item_level,
                 enchants, raid_drop, soulbound, value
             )
             out_strs = strextend(out_strs, MAX_MSG_LENGTH, f" | Use {ctx.prefix}req to see crafting info")
         else:
             out_strs = strjoin_len(
-                ' • ', MAX_MSG_LENGTH, name_desc, stats, effects, level, drop_level, cooldown_time, 
+                ' • ', MAX_MSG_LENGTH, name_desc, stats, effects, level, drop_level, item_level, cooldown_time, 
                 crafting_level, craft_fail_item, crafting, enchants, raid_drop, soulbound, value
             )
         for out_str in out_strs:
