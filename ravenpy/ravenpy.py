@@ -1026,7 +1026,9 @@ class Character:
         if self.training == Skills.Melee:
             self.training = Skills.All
 
-        if not self.training and not self.island:
+        if not self.training and (
+            not self.island or self.destination == Islands.Ferry
+        ):
             self.training = Skills.Sailing
 
         self.training_stats: list[CharacterStat] = []
